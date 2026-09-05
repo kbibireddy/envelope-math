@@ -71,10 +71,16 @@ describe("formatting helpers", () => {
     expect(formatPrimary(1024)).toBe("1 KB");
   });
 
-  it("picks the largest visible unit as primary", () => {
+  it("picks a human-scale unit in the 1–999 range", () => {
     expect(primarySize(0).key).toBe("B");
+    expect(primarySize(104).key).toBe("B");
     expect(primarySize(1024 ** 2).key).toBe("MB");
     expect(primarySize(1024 ** 3).key).toBe("GB");
+    // ~99 MB should read as MB, not a fractional GB.
+    const roughly99Mb = 104_000_000;
+    expect(primarySize(roughly99Mb).key).toBe("MB");
+    expect(primarySize(roughly99Mb).value).toBeGreaterThanOrEqual(1);
+    expect(primarySize(roughly99Mb).value).toBeLessThan(1000);
   });
 });
 

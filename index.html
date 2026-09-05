@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Back of the Envelope Math — sizing and capacity calculators">
-  <meta name="theme-color" content="#174f3d">
+  <meta name="description" content="Back of the Envelope Math — sizing and capacity calculators for systems design">
+  <meta name="theme-color" content="#0b1220">
   <title>Back of the Envelope Math</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@450;600;750;850&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@450;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="shell">
@@ -19,18 +19,14 @@
       </div>
     </div>
 
-    <nav class="product-nav" id="productNav" aria-label="Calculator products"></nav>
-
-    <header class="hero">
-      <p class="eyebrow">Calculator suite</p>
-      <h1>Back of the Envelope Math</h1>
-      <p class="intro" id="productIntro">
-        Paste a sample record, scale it across how many you’ll store, and layer on
-        year-over-year growth to sketch storage before you write a single query.
+    <div class="product-strip">
+      <p class="product-intro" id="productIntro">
+        Paste a sample record, scale storage, and layer YoY growth.
       </p>
-    </header>
+      <nav class="product-nav" id="productNav" aria-label="Calculator products"></nav>
+    </div>
 
-    <h2 class="eyebrow" id="productTitle" style="position:absolute;left:-9999px">Sizing estimation</h2>
+    <h2 class="sr-only" id="productTitle">Sizing estimation</h2>
     <div id="calculatorHost"></div>
   </div>
 
@@ -39,7 +35,7 @@
       <section class="panel controls" aria-labelledby="inputs-title">
         <p class="eyebrow">Inputs</p>
         <h2 id="inputs-title">Sizing estimation</h2>
-        <p class="helper">UTF-8 byte size updates as you type. Multiplier and growth reshape the footprint in real time.</p>
+        <p class="helper">UTF-8 size updates as you type. Multiplier and growth reshape the footprint live.</p>
 
         <div class="section">
           <label class="field-label" for="sampleText">Sample record / payload text</label>
@@ -62,7 +58,7 @@
 
         <div class="section">
           <span class="field-label" id="growthLabel">YoY data growth</span>
-          <p class="helper">Standard planning bars for large-scale systems — or enter your own percent.</p>
+          <p class="helper">Planning bars for large-scale systems — or enter your own percent.</p>
           <div class="chips" id="growthChips" role="group" aria-labelledby="growthLabel"></div>
           <p class="chip-hint" id="growthHint"></p>
           <div class="custom-row">
@@ -112,8 +108,8 @@
         </div>
 
         <p class="footnote">
-          Sizing uses binary units (1 KB = 1024 bytes). Growth compounds on the year-0 footprint.
-          Runs entirely in your browser — nothing is uploaded.
+          Binary units (1 KB = 1024 bytes). Growth compounds on year-0 footprint.
+          Runs in your browser — nothing is uploaded.
         </p>
       </section>
     </div>

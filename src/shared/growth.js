@@ -1,4 +1,4 @@
-import { sizeBreakdown } from "./storage.js";
+import { primarySize, sizeBreakdown } from "./storage.js";
 
 export const DEFAULT_PROJECTION_YEARS = 5;
 
@@ -27,12 +27,11 @@ export function projectCompoundGrowth({
   const projections = [];
   for (let year = 0; year <= horizon; year += 1) {
     const bytes = base * factor ** year;
-    const units = sizeBreakdown(bytes);
     projections.push({
       year,
       bytes,
-      units,
-      primary: units[units.length - 1]
+      units: sizeBreakdown(bytes),
+      primary: primarySize(bytes)
     });
   }
 

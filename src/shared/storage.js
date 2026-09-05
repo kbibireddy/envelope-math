@@ -70,10 +70,44 @@ export function sizeBreakdown(bytes) {
   return rows;
 }
 
-/** Largest visible unit — compact headlines. */
+/**
+ * Human-scale headline unit: prefer a magnitude in [1, 1000).
+ * e.g. 104,000,000 bytes → ~99.2 MB (not 0.097 GB).
+ */
 export function primarySize(bytes) {
-  const rows = sizeBreakdown(bytes);
-  return rows[rows.length - 1];
+  const safeBytes = Number.isFinite(bytes) && bytes > 0 ? bytes : 0;
+  if (safeBytes === 0) {
+    return {
+      key: "B",
+      label: "bytes",
+      value: 0,
+      display: "0"
+    };
+  }
+
+  // Walk largest → smallest; pick the first unit whose value is in [1, 1000).
+  for (let i = STORAGE_UNITS.length - 1; i >= 0; i -= 1) {
+    const unit = STORAGE_UNITS[i];
+    const value = safeBytes / unit.divisor;
+    if (value >= 1 && value < 1000) {
+      return {
+        key: unit.key,
+        label: unit.label,
+        value,
+        display: formatUnitValue(value)
+      };
+    }
+  }
+
+  // Larger than 1000 PB — still show PB.
+  const largest = STORAGE_UNITS[STORAGE_UNITS.length - 1];
+  const value = safeBytes / largest.divisor;
+  return {
+    key: largest.key,
+    label: largest.label,
+    value,
+    display: formatUnitValue(value)
+  };
 }
 
 export function formatPrimary(bytes) {

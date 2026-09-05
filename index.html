@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Back-of-the-envelope sizing and capacity calculators">
+  <meta name="theme-color" content="#174f3d">
+  <title>Back of the Envelope Math</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@450;600;750;850&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #17211b;
+      --muted: #66736b;
+      --paper: #f4f1e9;
+      --card: #fffdf8;
+      --line: #d9d8cf;
+      --green: #174f3d;
+      --green-2: #26765b;
+      --lime: #d8f36b;
+      --coral: #ed765e;
+      --shadow: 0 12px 36px rgba(31, 45, 37, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    html {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      background: var(--green);
+    }
+
+    body {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      overflow-x: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(216, 243, 107, 0.22), transparent 26rem),
+        radial-gradient(circle at 88% 18%, rgba(237, 118, 94, 0.12), transparent 22rem),
+        var(--paper);
+      font-family: "Source Sans 3", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+      line-height: 1.45;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .shell {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 16px max(48px, env(safe-area-inset-bottom));
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 -16px 22px;
+      padding: max(14px, env(safe-area-inset-top)) 16px 14px;
+      color: white;
+      background: var(--green);
+      box-shadow: 0 10px 28px rgba(23, 79, 61, .18);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 13px;
+      color: var(--green);
+      background: var(--lime);
+      font-weight: 900;
+    }
+
+    .product-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .product-nav button {
+      min-height: 40px;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 253, 248, 0.82);
+      font-weight: 750;
+    }
+
+    .product-nav button.active {
+      color: white;
+      border-color: var(--green);
+      background: var(--green);
+    }
+
+    .product-nav button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    header.hero {
+      margin-bottom: 28px;
+      animation: rise 0.7s ease both;
+    }
+
+    h1 {
+      max-width: 16ch;
+      margin: 0 0 10px;
+      font-family: "Fraunces", Georgia, "Times New Roman", serif;
+      font-size: clamp(2.2rem, 6vw, 4.2rem);
+      font-weight: 500;
+      letter-spacing: -0.055em;
+      line-height: 0.96;
+    }
+
+    .intro {
+      max-width: 42rem;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid rgba(23, 33, 27, 0.09);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      animation: rise 0.75s ease both;
+    }
+
+    .controls { padding: 22px; }
+    .results {
+      padding: 22px;
+      animation-delay: 0.08s;
+    }
+
+    .eyebrow {
+      margin: 0 0 4px;
+      color: var(--green-2);
+      font-size: .75rem;
+      font-weight: 850;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h2, h3 { margin: 0; letter-spacing: -.025em; }
+    h2 { font-size: 1.45rem; }
+    h3 { font-size: 1.02rem; }
+
+    .helper {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: .84rem;
+    }
+
+    .section {
+      padding: 18px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section:first-of-type { padding-top: 8px; }
+    .section:last-child { border-bottom: 0; padding-bottom: 0; }
+
+    label.field-label {
+      display: block;
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 750;
+    }
+
+    textarea#sampleText {
+      width: 100%;
+      min-height: 160px;
+      margin-top: 8px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: var(--ink);
+      background: white;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    textarea#sampleText:focus,
+    input:focus {
+      border-color: var(--green-2);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(38, 118, 91, .13);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .chip {
+      min-height: 36px;
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      background: white;
+      font-weight: 750;
+      font-size: .9rem;
+    }
+
+    .chip.active {
+      color: var(--green);
+      border-color: var(--lime);
+      background: var(--lime);
+    }
+
+    .chip-hint {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: .78rem;
+      min-height: 1.2em;
+    }
+
+    .custom-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: end;
+      margin-top: 12px;
+    }
+
+    .custom-row input {
+      width: 100%;
+      height: 42px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--ink);
+      background: white;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .custom-row .apply {
+      height: 42px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 10px;
+      color: white;
+      background: var(--green);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .custom-row .apply:hover { background: var(--green-2); }
+
+    .hero-metric {
+      display: grid;
+      gap: 4px;
+      margin-bottom: 18px;
+      padding: 18px;
+      border-radius: 16px;
+      color: white;
+      background:
+        linear-gradient(145deg, rgba(216, 243, 107, 0.18), transparent 42%),
+        var(--green);
+    }
+
+    .hero-metric .label {
+      color: rgba(255, 255, 255, 0.72);
+      font-size: .78rem;
+      font-weight: 750;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .hero-metric .value {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 500;
+      letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
+      animation: tick 0.35s ease;
+    }
+
+    .hero-metric .sub {
+      color: rgba(255, 255, 255, 0.78);
+      font-size: .92rem;
+    }
+
+    .unit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 10px;
+    }
+
+    .unit-cell {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.72);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .unit-cell.flash {
+      transform: translateY(-1px);
+      border-color: var(--green-2);
+    }
+
+    .unit-cell .u-label {
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .unit-cell .u-value {
+      margin-top: 4px;
+      font-size: 1.15rem;
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .projection {
+      width: 100%;
+      margin-top: 8px;
+      border-collapse: collapse;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .projection th,
+    .projection td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+    }
+
+    .projection th {
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .projection td.year { font-weight: 800; }
+    .projection tr:last-child td { border-bottom: 0; }
+
+    .growth-bar {
+      display: block;
+      height: 6px;
+      margin-top: 6px;
+      border-radius: 999px;
+      background: #e8e9e1;
+      overflow: hidden;
+    }
+
+    .growth-bar > span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green-2), var(--lime));
+      transform-origin: left center;
+      transition: width 0.45s ease;
+    }
+
+    .footnote {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes tick {
+      from { opacity: 0.4; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .results { order: -1; }
+    }
+
+    @media (max-width: 560px) {
+      .custom-row { grid-template-columns: 1fr; }
+      .brand span:not(.mark) { font-size: .95rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="top-bar">
+      <div class="brand">
+        <span class="mark" aria-hidden="true">∑</span>
+        <span>Back of the Envelope Math</span>
+      </div>
+    </div>
+
+    <nav class="product-nav" aria-label="Calculator products">
+      <button type="button" class="active" data-product="sizing">Sizing estimation</button>
+      <button type="button" disabled title="Coming soon">Throughput</button>
+      <button type="button" disabled title="Coming soon">Cost envelope</button>
+    </nav>
+
+    <header class="hero">
+      <p class="eyebrow">Calculator suite</p>
+      <h1>Back of the Envelope Math</h1>
+      <p class="intro">
+        Paste a sample record, scale it across how many you’ll store, and layer on
+        year-over-year growth to sketch storage before you write a single query.
+      </p>
+    </header>
+
+    <div class="layout">
+      <section class="panel controls" aria-labelledby="inputs-title">
+        <p class="eyebrow">Inputs</p>
+        <h2 id="inputs-title">Sizing estimation</h2>
+        <p class="helper">UTF-8 byte size updates as you type. Multiplier and growth reshape the footprint in real time.</p>
+
+        <div class="section">
+          <label class="field-label" for="sampleText">Sample record / payload text</label>
+          <textarea id="sampleText" spellcheck="false" placeholder='{"userId":"u_1842","event":"checkout","items":3,"total":42.50}'></textarea>
+          <p class="helper" id="charMeta">0 characters · 0 UTF-8 bytes</p>
+        </div>
+
+        <div class="section">
+          <label class="field-label" id="multiplierLabel">Record multiplier</label>
+          <p class="helper">How many copies of this record will you store?</p>
+          <div class="chips" id="multiplierChips" role="group" aria-labelledby="multiplierLabel"></div>
+          <div class="custom-row">
+            <div>
+              <label class="field-label" for="customMultiplier">Custom count</label>
+              <input id="customMultiplier" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 2500000">
+            </div>
+            <button type="button" class="apply" id="applyMultiplier">Use custom</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <label class="field-label" id="growthLabel">YoY data growth</label>
+          <p class="helper">Standard planning bars for large-scale systems — or enter your own percent.</p>
+          <div class="chips" id="growthChips" role="group" aria-labelledby="growthLabel"></div>
+          <p class="chip-hint" id="growthHint"></p>
+          <div class="custom-row">
+            <div>
+              <label class="field-label" for="customGrowth">Custom growth (%)</label>
+              <input id="customGrowth" type="number" min="0" step="0.1" inputmode="decimal" placeholder="e.g. 35">
+            </div>
+            <button type="button" class="apply" id="applyGrowth">Use custom</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel results" aria-labelledby="results-title" aria-live="polite">
+        <p class="eyebrow">Live estimate</p>
+        <h2 id="results-title">Storage footprint</h2>
+
+        <div class="hero-metric" id="heroMetric">
+          <span class="label">Year 0 total</span>
+          <span class="value" id="heroValue">0 bytes</span>
+          <span class="sub" id="heroSub">0 records × 0 bytes each</span>
+        </div>
+
+        <div class="section">
+          <h3>Per-record size</h3>
+          <p class="helper">Units below 0.001 are hidden (no noise past three decimal zeros).</p>
+          <div class="unit-grid" id="perRecordUnits"></div>
+        </div>
+
+        <div class="section">
+          <h3>Scaled total (year 0)</h3>
+          <div class="unit-grid" id="totalUnits"></div>
+        </div>
+
+        <div class="section">
+          <h3>Five-year growth projection</h3>
+          <p class="helper" id="projectionHelper">Compounded annually at 40% YoY.</p>
+          <table class="projection">
+            <thead>
+              <tr>
+                <th scope="col">Year</th>
+                <th scope="col">Footprint</th>
+                <th scope="col">vs year 0</th>
+              </tr>
+            </thead>
+            <tbody id="projectionBody"></tbody>
+          </table>
+        </div>
+
+        <p class="footnote">
+          Sizing uses binary units (1 KB = 1024 bytes). Growth compounds on the year-0 footprint.
+          Runs entirely in your browser — nothing is uploaded.
+        </p>
+      </section>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      GROWTH_PRESETS,
+      MULTIPLIER_PRESETS,
+      estimateSizing
+    } from "./src/calculator.js";
+
+    const SAMPLE_DEFAULT = `{"userId":"u_1842","event":"checkout","sku":"SKU-9F2","qty":3,"total":42.50,"ts":"2026-09-05T19:00:00Z"}`;
+
+    const state = {
+      text: SAMPLE_DEFAULT,
+      recordCount: 1_000_000,
+      growthPercent: 40,
+      customMultiplier: false,
+      customGrowth: false
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function formatCount(n) {
+      return Number(n).toLocaleString("en-US");
+    }
+
+    function renderChips() {
+      const multiplierRoot = $("multiplierChips");
+      multiplierRoot.innerHTML = "";
+      for (const preset of MULTIPLIER_PRESETS) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip" + (!state.customMultiplier && state.recordCount === preset.value ? " active" : "");
+        btn.textContent = preset.label;
+        btn.addEventListener("click", () => {
+          state.recordCount = preset.value;
+          state.customMultiplier = false;
+          $("customMultiplier").value = "";
+          render();
+        });
+        multiplierRoot.appendChild(btn);
+      }
+
+      const growthRoot = $("growthChips");
+      growthRoot.innerHTML = "";
+      let hint = "";
+      for (const preset of GROWTH_PRESETS) {
+        const active = !state.customGrowth && state.growthPercent === preset.value;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip" + (active ? " active" : "");
+        btn.textContent = preset.label;
+        btn.title = preset.hint;
+        btn.addEventListener("click", () => {
+          state.growthPercent = preset.value;
+          state.customGrowth = false;
+          $("customGrowth").value = "";
+          render();
+        });
+        growthRoot.appendChild(btn);
+        if (active) hint = preset.hint;
+      }
+      if (state.customGrowth) {
+        hint = "Custom growth rate for your capacity model.";
+      }
+      $("growthHint").textContent = hint;
+    }
+
+    function renderUnitGrid(root, units) {
+      root.innerHTML = "";
+      for (const unit of units) {
+        const cell = document.createElement("div");
+        cell.className = "unit-cell";
+        cell.innerHTML = `<div class="u-label">${unit.label}</div><div class="u-value">${unit.display}</div>`;
+        root.appendChild(cell);
+        requestAnimationFrame(() => cell.classList.add("flash"));
+        setTimeout(() => cell.classList.remove("flash"), 280);
+      }
+    }
+
+    function renderProjection(estimate) {
+      const body = $("projectionBody");
+      body.innerHTML = "";
+      const year0 = estimate.year0Bytes || 1;
+      const maxBytes = estimate.projections[estimate.projections.length - 1]?.bytes || 1;
+
+      for (const row of estimate.projections) {
+        const multiple = estimate.year0Bytes === 0 ? 0 : row.bytes / year0;
+        const width = maxBytes === 0 ? 0 : Math.max(4, (row.bytes / maxBytes) * 100);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="year">Y${row.year}</td>
+          <td>
+            <strong>${row.primary.display} ${row.primary.label}</strong>
+            <span class="growth-bar" aria-hidden="true"><span style="width:${width}%"></span></span>
+          </td>
+          <td>${multiple === 0 ? "—" : multiple.toLocaleString("en-US", { maximumFractionDigits: 2 }) + "×"}</td>
+        `;
+        body.appendChild(tr);
+      }
+
+      $("projectionHelper").textContent =
+        `Compounded annually at ${state.growthPercent}% YoY over ${estimate.projections.length - 1} years.`;
+    }
+
+    function render() {
+      renderChips();
+      const estimate = estimateSizing({
+        text: state.text,
+        recordCount: state.recordCount,
+        growthPercent: state.growthPercent,
+        years: 5
+      });
+
+      $("sampleText").value = state.text;
+      $("charMeta").textContent =
+        `${formatCount(state.text.length)} characters · ${formatCount(estimate.bytesPerRecord)} UTF-8 bytes`;
+
+      const hero = estimate.totalPrimary;
+      const heroValue = $("heroValue");
+      const nextText = `${hero.display} ${hero.label}`;
+      if (heroValue.textContent !== nextText) {
+        heroValue.style.animation = "none";
+        heroValue.textContent = nextText;
+        void heroValue.offsetWidth;
+        heroValue.style.animation = "";
+      }
+      $("heroSub").textContent =
+        `${formatCount(state.recordCount)} records × ${formatCount(estimate.bytesPerRecord)} bytes each`;
+
+      renderUnitGrid($("perRecordUnits"), estimate.perRecordUnits);
+      renderUnitGrid($("totalUnits"), estimate.totalUnits);
+      renderProjection(estimate);
+    }
+
+    $("sampleText").addEventListener("input", (event) => {
+      state.text = event.target.value;
+      render();
+    });
+
+    $("applyMultiplier").addEventListener("click", () => {
+      const raw = Number($("customMultiplier").value);
+      if (!Number.isFinite(raw) || raw < 0) return;
+      state.recordCount = raw;
+      state.customMultiplier = true;
+      render();
+    });
+
+    $("customMultiplier").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") $("applyMultiplier").click();
+    });
+
+    $("applyGrowth").addEventListener("click", () => {
+      const raw = Number($("customGrowth").value);
+      if (!Number.isFinite(raw) || raw < 0) return;
+      state.growthPercent = raw;
+      state.customGrowth = true;
+      render();
+    });
+
+    $("customGrowth").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") $("applyGrowth").click();
+    });
+
+    render();
+  </script>
+</body>
+</html>

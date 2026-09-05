@@ -23,6 +23,26 @@ Interactive back-of-the-envelope calculators for storage sizing and capacity pla
 
 Everything runs in the browser. No payload text is uploaded or stored.
 
+## Architecture
+
+```
+src/
+  shared/          # pure math (storage units, growth, presets) — no DOM
+  ui/              # reusable widgets (chips, unit grid, projection table)
+  calculators/
+    registry.js    # product catalog + mount hooks
+    sizing/        # first calculator (model + view)
+  app.js           # shell: nav + host; swaps calculators without reloads
+  styles/main.css
+```
+
+**Adding a calculator**
+
+1. Create `src/calculators/<id>/{model.js, view.js}` — keep math in `model.js`, DOM in `view.js`
+2. Reuse `src/shared/*` and `src/ui/*` where possible
+3. Register the product in `src/calculators/registry.js`
+4. Add `<template id="tpl-<id}">` markup in `index.html`
+
 ## Development
 
 Requires Node.js 22 or later.

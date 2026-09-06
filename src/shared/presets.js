@@ -24,3 +24,44 @@ export const GROWTH_PRESETS = Object.freeze([
   Object.freeze({ label: "100%", value: 100, hint: "Aggressive / large-scale logging" }),
   Object.freeze({ label: "150%", value: 150, hint: "Hypergrowth case" })
 ]);
+
+/**
+ * Envelope compression presets for JSON/text-like payloads.
+ * Ratios are typical post-compression fractions of raw UTF-8 size
+ * (back-of-envelope, not a codec benchmark).
+ *
+ * @typedef {{ id: string, label: string, ratio: number, hint?: string }} CompressionPreset
+ */
+
+/** @type {ReadonlyArray<CompressionPreset>} */
+export const COMPRESSION_PRESETS = Object.freeze([
+  Object.freeze({
+    id: "gz",
+    label: "gz",
+    ratio: 0.33,
+    hint: "gzip — typical ~3× on JSON/text"
+  }),
+  Object.freeze({
+    id: "zstd-1",
+    label: "zstd(1)",
+    ratio: 0.3,
+    hint: "zstd level 1 — fast, modest ratio"
+  }),
+  Object.freeze({
+    id: "zstd-11",
+    label: "zstd(11)",
+    ratio: 0.22,
+    hint: "zstd level 11 — balanced"
+  }),
+  Object.freeze({
+    id: "zstd-22",
+    label: "zstd(22)",
+    ratio: 0.17,
+    hint: "zstd level 22 — max ratio, slow"
+  })
+]);
+
+export function getCompressionPreset(id) {
+  if (!id) return null;
+  return COMPRESSION_PRESETS.find((preset) => preset.id === id) ?? null;
+}

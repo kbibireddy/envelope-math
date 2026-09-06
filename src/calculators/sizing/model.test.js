@@ -45,6 +45,24 @@ describe("estimateSizing", () => {
     expect(result.textLength).toBe(0);
     expect(result.bytesPerRecord).toBe(0);
   });
+  it("applies exclusive compression ratio to footprints", () => {
+    const raw = estimateSizing({
+      text: "abcd",
+      recordCount: 1000,
+      growthPercent: 0,
+      compressionId: null
+    });
+    const gz = estimateSizing({
+      text: "abcd",
+      recordCount: 1000,
+      growthPercent: 0,
+      compressionId: "gz"
+    });
+    expect(raw.bytesPerRecord).toBe(4);
+    expect(gz.bytesPerRecord).toBeCloseTo(4 * 0.33);
+    expect(gz.year0Bytes).toBeCloseTo(4000 * 0.33);
+    expect(gz.compressionId).toBe("gz");
+  });
 });
 
 describe("calculator registry", () => {

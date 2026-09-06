@@ -229,22 +229,20 @@ h3 { font-size: 0.98rem; }
   align-self: start;
 }
 
-.scale-grid {
+.scale-stack {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 14px;
 }
 
-.scale-col {
+.scale-row {
   display: grid;
-  gap: 0;
-  align-content: start;
+  gap: 4px;
   min-width: 0;
 }
 
 @media (min-width: 720px) {
   .inputs-row {
-    grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
     gap: 28px;
   }
 
@@ -252,12 +250,6 @@ h3 { font-size: 0.98rem; }
     padding-left: 24px;
     margin-left: 4px;
     border-left: 1px solid var(--line);
-  }
-
-  /* Side-by-side Records | YoY keeps the right column short */
-  .controls .scale-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
   }
 }
 
@@ -727,16 +719,13 @@ input:focus {
   .scale-block {
     padding-top: 8px;
     border-top: 1px solid var(--line);
-  }
-
-  .controls .scale-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    padding-left: 0;
+    margin-left: 0;
+    border-left: 0;
   }
 }
 
 @media (max-width: 560px) {
   .brand span:not(.mark) { font-size: 0.92rem; }
   .product-intro { font-size: 0.9rem; }
-  .controls .scale-grid { grid-template-columns: 1fr; }
 }

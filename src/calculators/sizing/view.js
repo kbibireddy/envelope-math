@@ -17,6 +17,7 @@ import {
   PROJECTION_YEAR_STEP
 } from "../../shared/growth.js";
 import {
+  COMPRESSION_PRESETS,
   GROWTH_PRESETS,
   MULTIPLIER_PRESETS,
   SIZING_DEFAULTS,
@@ -33,6 +34,7 @@ export function mountSizingCalculator(root) {
     recordCount: SIZING_DEFAULTS.recordCount,
     growthPercent: SIZING_DEFAULTS.growthPercent,
     projectionYears: SIZING_DEFAULTS.years,
+    compressionId: /** @type {string | null} */ (SIZING_DEFAULTS.compressionId),
     customMultiplier: false,
     customGrowth: false
   };
@@ -56,6 +58,11 @@ export function mountSizingCalculator(root) {
   const extendProjection = /** @type {HTMLButtonElement} */ (
     $("extendProjection", root)
   );
+  const compressionMeta = $("compressionMeta", root);
+  const compressionChips = $("compressionChips", root);
+
+  /** @type {Map<string, HTMLButtonElement>} */
+  const compressionButtons = new Map();
 
   bindInfoPopover(
     /** @type {HTMLButtonElement} */ ($("perRecordInfoBtn", root)),
@@ -137,6 +144,30 @@ export function mountSizingCalculator(root) {
     }
   });
 
+  // Exclusive compression toggles — selecting one clears the others;
+  // clicking the active one turns compression off.
+  for (const preset of COMPRESSION_PRESETS) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chip";
+    btn.textContent = preset.label;
+    if (preset.hint) btn.title = preset.hint;
+    btn.addEventListener("click", () => {
+      state.compressionId =
+        state.compressionId === preset.id ? null : preset.id;
+      syncCompressionChips();
+      renderResults();
+    });
+    compressionButtons.set(preset.id, btn);
+    compressionChips.appendChild(btn);
+  }
+
+  function syncCompressionChips() {
+    for (const [id, btn] of compressionButtons) {
+      btn.classList.toggle("active", state.compressionId === id);
+    }
+  }
+
   extendProjection.addEventListener("click", () => {
     if (state.projectionYears >= MAX_PROJECTION_YEARS) return;
     state.projectionYears = Math.min(
@@ -151,17 +182,24 @@ export function mountSizingCalculator(root) {
       text: state.text,
       recordCount: state.recordCount,
       growthPercent: state.growthPercent,
-      years: state.projectionYears
+      years: state.projectionYears,
+      compressionId: state.compressionId
     });
 
     setText(
       charMeta,
-      `${estimate.textLength.toLocaleString("en-US")} characters · ${estimate.bytesPerRecord.toLocaleString("en-US")} UTF-8 bytes`
+      `${estimate.textLength.toLocaleString("en-US")} characters · ${estimate.rawBytesPerRecord.toLocaleString("en-US")} UTF-8 bytes`
     );
+    setText(compressionMeta, estimate.compressionLabel);
 
     setAnimatedText(perRecordPrimaryValue, estimate.perRecordPrimary.display);
     setText(perRecordPrimaryUnit, estimate.perRecordPrimary.label);
-    setText(perRecordSub, "UTF-8 payload size");
+    setText(
+      perRecordSub,
+      estimate.compressionId
+        ? `UTF-8 payload after ${estimate.compressionId}`
+        : "UTF-8 payload size"
+    );
     renderUnitGrid(perRecordUnits, estimate.perRecordUnits);
     renderSizePopover(
       perRecordPopoverBody,
@@ -199,6 +237,7 @@ export function mountSizingCalculator(root) {
 
   sampleText.addEventListener("input", onInput);
   sampleText.value = state.text;
+  syncCompressionChips();
   renderResults();
 
   return {

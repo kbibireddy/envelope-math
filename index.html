@@ -44,15 +44,21 @@
           </div>
 
           <div class="section compact scale-block">
-            <div class="scale-grid">
-              <div class="scale-col">
+            <div class="scale-stack">
+              <div class="scale-row">
                 <span class="field-label" id="multiplierLabel">Records</span>
                 <div class="chips" id="multiplierChips" role="group" aria-labelledby="multiplierLabel"></div>
               </div>
 
-              <div class="scale-col">
+              <div class="scale-row">
                 <span class="field-label" id="growthLabel">YoY growth</span>
                 <div class="chips" id="growthChips" role="group" aria-labelledby="growthLabel"></div>
+              </div>
+
+              <div class="scale-row">
+                <span class="field-label" id="compressionLabel">Compression</span>
+                <div class="chips compression-chips" id="compressionChips" role="group" aria-labelledby="compressionLabel"></div>
+                <p class="helper" id="compressionMeta">Off · raw UTF-8 size</p>
               </div>
             </div>
           </div>

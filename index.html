@@ -20,10 +20,12 @@
     </div>
 
     <div class="product-strip">
-      <p class="product-intro" id="productIntro">
-        Paste a sample record, scale storage, and layer YoY growth.
-      </p>
-      <nav class="product-nav" id="productNav" aria-label="Calculator products"></nav>
+      <nav
+        class="mode-switch product-switch"
+        id="productNav"
+        role="radiogroup"
+        aria-label="Calculator products"
+      ></nav>
     </div>
 
     <h2 class="sr-only" id="productTitle">Sizing estimation</h2>
@@ -161,11 +163,11 @@
         <p class="eyebrow">Inputs</p>
         <h2 id="throughput-inputs-title">Throughput estimation</h2>
 
-        <div class="section compact">
-          <div class="focus-bar">
+        <div class="section compact layer-section">
+          <div class="layer-switch-row">
             <span class="field-label" id="investigationLabel">Layer</span>
             <div
-              class="mode-switch focus-switch"
+              class="mode-switch layer-switch"
               id="investigationChips"
               role="radiogroup"
               aria-labelledby="investigationLabel"

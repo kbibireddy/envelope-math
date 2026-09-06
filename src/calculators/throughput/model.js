@@ -86,7 +86,7 @@ export const TRAFFIC_BY_FOCUS = Object.freeze({
       "DAU/MAU and actions/user/day — for app servers and load balancers.",
     rateColumn: "Actions/user/day",
     rateSuffix: "/user/day",
-    rateLabel: "Audience",
+    rateLabel: "Avg RPS",
     templates: STREAM_TEMPLATES,
     defaultStreams: Object.freeze([
       Object.freeze({

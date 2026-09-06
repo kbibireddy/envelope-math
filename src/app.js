@@ -7,7 +7,7 @@ import {
 } from "./calculators/registry.js";
 
 /**
- * App shell: product nav + calculator host.
+ * App shell: product switch + calculator host.
  * Switching products tears down the previous mount and mounts the next.
  *
  * Extension point: register a calculator in registry.js and add
@@ -17,7 +17,6 @@ export function startApp() {
   const nav = $("productNav");
   const host = $("calculatorHost");
   const title = $("productTitle");
-  const intro = $("productIntro");
 
   /** @type {{ destroy?: () => void } | null} */
   let active = null;
@@ -30,14 +29,19 @@ export function startApp() {
     for (const product of CALCULATORS) {
       const btn = document.createElement("button");
       btn.type = "button";
+      btn.className = "mode-switch-btn";
       btn.textContent = product.label;
       btn.dataset.product = product.id;
+      btn.setAttribute("role", "radio");
 
       if (product.status === "planned") {
         btn.disabled = true;
         btn.title = "Coming soon";
+        btn.setAttribute("aria-checked", "false");
       } else {
-        btn.classList.toggle("active", product.id === selectedId);
+        const selected = product.id === selectedId;
+        btn.classList.toggle("active", selected);
+        btn.setAttribute("aria-checked", selected ? "true" : "false");
         btn.addEventListener("click", () => selectProduct(product.id));
       }
 
@@ -63,7 +67,6 @@ export function startApp() {
     }
 
     setText(title, product.label);
-    setText(intro, product.description ?? "");
     renderNav(id);
     active = product.mount(host);
   }

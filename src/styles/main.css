@@ -17,6 +17,11 @@
 
 * { box-sizing: border-box; }
 
+/* Author display rules must not override the hidden attribute */
+[hidden] {
+  display: none !important;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -112,38 +117,20 @@ button { cursor: pointer; }
   padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
 }
 
-.product-intro {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.95rem;
-  max-width: 46rem;
+.product-switch {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 0;
 }
 
-.product-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.product-switch .mode-switch-btn {
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 0.84rem;
 }
 
-.product-nav button {
-  min-height: 36px;
-  padding: 6px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: var(--muted);
-  background: rgba(247, 250, 252, 0.9);
-  font-weight: 700;
-  font-size: 0.9rem;
-}
-
-.product-nav button.active {
-  color: #e8eef5;
-  border-color: var(--accent);
-  background: var(--accent);
-}
-
-.product-nav button:disabled {
-  opacity: 0.5;
+.product-switch .mode-switch-btn:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -398,22 +385,27 @@ input:focus {
   box-shadow: 0 1px 2px rgba(14, 40, 70, 0.12);
 }
 
-.focus-bar,
-.focus-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
+.layer-section {
+  padding-top: 4px;
 }
 
-.focus-bar .field-label {
+.layer-switch-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.layer-switch-row .field-label {
   margin: 0;
 }
 
-.focus-switch,
-.focus-switch {
+.layer-switch {
   margin-top: 0;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
+  width: fit-content;
 }
 
 .traffic-row,
@@ -441,12 +433,14 @@ input:focus {
 
 @media (min-width: 720px) {
   .traffic-row {
-    grid-template-columns: minmax(0, 1.35fr) minmax(180px, 0.65fr);
+    grid-template-columns: minmax(0, 1.4fr) minmax(160px, 0.6fr);
     gap: 18px;
     align-items: start;
   }
 
-  .traffic-col + .traffic-col {
+  /* Peak sits beside the active traffic input (audience OR rate),
+     even when the other traffic col stays in the DOM as [hidden]. */
+  .traffic-row > .traffic-col:not([hidden]) ~ .traffic-col:not([hidden]) {
     padding-left: 18px;
     border-left: 1px solid var(--line);
   }
@@ -1334,5 +1328,4 @@ input:focus {
 
 @media (max-width: 560px) {
   .brand span:not(.mark) { font-size: 0.92rem; }
-  .product-intro { font-size: 0.9rem; }
 }

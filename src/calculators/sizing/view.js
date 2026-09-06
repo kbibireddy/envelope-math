@@ -1,5 +1,11 @@
 import { $, setAnimatedText, setText } from "../../ui/dom.js";
-import { bindCustomNumber, createPresetChips } from "../../ui/presets.js";
+import {
+  MAX_GROWTH_PERCENT,
+  MAX_RECORD_COUNT,
+  bindCustomValueChip,
+  createPresetChips,
+  formatGrouped
+} from "../../ui/presets.js";
 import {
   bindInfoPopover,
   renderProjectionTable,
@@ -43,13 +49,6 @@ export function mountSizingCalculator(root) {
     $("projectionBody", root)
   );
 
-  const customMultiplierInput = /** @type {HTMLInputElement} */ (
-    $("customMultiplier", root)
-  );
-  const customGrowthInput = /** @type {HTMLInputElement} */ (
-    $("customGrowth", root)
-  );
-
   bindInfoPopover(
     /** @type {HTMLButtonElement} */ ($("perRecordInfoBtn", root)),
     $("perRecordPopover", root)
@@ -67,8 +66,9 @@ export function mountSizingCalculator(root) {
     onSelect: (preset) => {
       state.recordCount = preset.value;
       state.customMultiplier = false;
-      customMultiplierField.clear();
+      customMultiplierChip.clear();
       multiplierChips.sync();
+      customMultiplierChip.sync();
       renderResults();
     }
   });
@@ -81,30 +81,50 @@ export function mountSizingCalculator(root) {
     onSelect: (preset) => {
       state.growthPercent = preset.value;
       state.customGrowth = false;
-      customGrowthField.clear();
+      customGrowthChip.clear();
       growthChips.sync();
+      customGrowthChip.sync();
       renderResults();
     }
   });
 
-  const customMultiplierField = bindCustomNumber({
-    input: customMultiplierInput,
-    button: /** @type {HTMLButtonElement} */ ($("applyMultiplier", root)),
+  const customMultiplierChip = bindCustomValueChip({
+    container: $("multiplierChips", root),
+    idPrefix: "customMultiplier",
+    triggerLabel: "Enter…",
+    placeholder: "Record count",
+    integer: true,
+    min: 0,
+    max: MAX_RECORD_COUNT,
+    maxError: `Max is ${formatGrouped(MAX_RECORD_COUNT)} (JS safe integer).`,
+    isActive: () => state.customMultiplier,
+    getDisplayValue: () => (state.customMultiplier ? state.recordCount : null),
     onApply: (value) => {
       state.recordCount = value;
       state.customMultiplier = true;
       multiplierChips.sync();
+      customMultiplierChip.sync();
       renderResults();
     }
   });
 
-  const customGrowthField = bindCustomNumber({
-    input: customGrowthInput,
-    button: /** @type {HTMLButtonElement} */ ($("applyGrowth", root)),
+  const customGrowthChip = bindCustomValueChip({
+    container: $("growthChips", root),
+    idPrefix: "customGrowth",
+    triggerLabel: "Enter…",
+    placeholder: "Growth %",
+    suffix: "%",
+    integer: false,
+    min: 0,
+    max: MAX_GROWTH_PERCENT,
+    maxError: `Max is ${formatGrouped(MAX_GROWTH_PERCENT)}% (100×).`,
+    isActive: () => state.customGrowth,
+    getDisplayValue: () => (state.customGrowth ? state.growthPercent : null),
     onApply: (value) => {
       state.growthPercent = value;
       state.customGrowth = true;
       growthChips.sync();
+      customGrowthChip.sync();
       renderResults();
     }
   });

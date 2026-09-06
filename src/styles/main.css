@@ -105,6 +105,11 @@ button { cursor: pointer; }
   display: grid;
   gap: 10px;
   margin-bottom: 18px;
+  padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+}
+
+#calculatorHost {
+  padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
 }
 
 .product-intro {
@@ -290,6 +295,7 @@ input:focus {
   flex-wrap: wrap;
   gap: 5px;
   margin-top: 5px;
+  align-items: center;
 }
 
 .chip {
@@ -310,15 +316,48 @@ input:focus {
   background: var(--signal-soft);
 }
 
-.custom-row {
+.custom-chip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.custom-chip {
+  border-style: dashed;
+  color: var(--accent);
+}
+
+.custom-chip.active {
+  border-style: solid;
+  color: var(--ink);
+  border-color: var(--signal);
+  background: var(--signal-soft);
+}
+
+.custom-popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 220px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(11, 18, 32, 0.14);
+}
+
+.custom-popover[hidden] {
+  display: none;
+}
+
+.custom-popover-field {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 6px;
   align-items: center;
-  margin-top: 6px;
 }
 
-.custom-row input {
+.custom-popover-field input {
   width: 100%;
   height: 30px;
   padding: 4px 8px;
@@ -332,7 +371,7 @@ input:focus {
   font-size: 0.8rem;
 }
 
-.custom-row .apply {
+.custom-popover-field .apply {
   height: 30px;
   padding: 0 10px;
   border: 0;
@@ -344,7 +383,21 @@ input:focus {
   font-size: 0.8rem;
 }
 
-.custom-row .apply:hover { background: var(--accent-2); }
+.custom-popover-field .apply:hover {
+  background: var(--accent-2);
+}
+
+.custom-popover-error {
+  margin: 6px 0 0;
+  color: var(--danger);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.custom-popover-error[hidden] {
+  display: none;
+}
 
 .hero-metric {
   display: grid;
@@ -658,7 +711,6 @@ input:focus {
 }
 
 @media (max-width: 560px) {
-  .custom-row { grid-template-columns: 1fr; }
   .brand span:not(.mark) { font-size: 0.92rem; }
   .product-intro { font-size: 0.9rem; }
   .controls .scale-grid { grid-template-columns: 1fr; }

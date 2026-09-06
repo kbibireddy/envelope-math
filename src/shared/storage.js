@@ -92,11 +92,16 @@ export function formatCount(value) {
 function stripTrailingZeros(value) {
   const asNumber = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(asNumber)) return "0";
-  // Avoid scientific notation for ordinary magnitudes.
-  if (Math.abs(asNumber) >= 1e12 || (Math.abs(asNumber) > 0 && Math.abs(asNumber) < 1e-6)) {
-    return asNumber.toPrecision(4).replace(/\.?0+e/, "e");
+  // Never use scientific notation in the UI — keep ordinary decimal text.
+  if (Math.abs(asNumber) >= 1e15) {
+    return Math.round(asNumber).toLocaleString("en-US", { useGrouping: false });
   }
   const fixed = asNumber.toString();
+  if (fixed.includes("e") || fixed.includes("E")) {
+    // Extremely small leftovers: treat as zero for display.
+    if (Math.abs(asNumber) < 1e-6) return "0";
+    return asNumber.toFixed(4).replace(/\.?0+$/, "");
+  }
   if (!fixed.includes(".")) return fixed;
   return fixed.replace(/\.?0+$/, "");
 }
@@ -144,7 +149,10 @@ export function fullSizeBreakdown(bytes) {
 }
 
 /**
- * Human-scale headline unit: prefer a magnitude in [1, 1000).
+ * Human-scale headline unit (industry-standard binary pick):
+ * choose the largest unit where value ≥ 1.
+ * That keeps the magnitude in [1, 1024) for every rung below PB, and
+ * avoids the [1000, 1024) gap that previously fell through to tiny PB.
  */
 export function primarySize(bytes) {
   const safeBytes = Number.isFinite(bytes) && bytes > 0 ? bytes : 0;
@@ -152,24 +160,19 @@ export function primarySize(bytes) {
     return { key: "B", label: "bytes", value: 0, display: "0" };
   }
 
+  let chosen = STORAGE_UNITS[0];
   for (let i = STORAGE_UNITS.length - 1; i >= 0; i -= 1) {
     const unit = STORAGE_UNITS[i];
-    const value = safeBytes / unit.divisor;
-    if (value >= 1 && value < 1000) {
-      return {
-        key: unit.key,
-        label: unit.label,
-        value,
-        display: formatCompactNumber(value)
-      };
+    if (safeBytes >= unit.divisor) {
+      chosen = unit;
+      break;
     }
   }
 
-  const largest = STORAGE_UNITS[STORAGE_UNITS.length - 1];
-  const value = safeBytes / largest.divisor;
+  const value = safeBytes / chosen.divisor;
   return {
-    key: largest.key,
-    label: largest.label,
+    key: chosen.key,
+    label: chosen.label,
     value,
     display: formatCompactNumber(value)
   };

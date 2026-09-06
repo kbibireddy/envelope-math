@@ -27,10 +27,17 @@ export const GROWTH_PRESETS = Object.freeze([
 
 /**
  * Envelope compression presets for JSON/text-like payloads.
- * Ratios are typical post-compression fractions of raw UTF-8 size
- * (back-of-envelope, not a codec benchmark).
+ * Ratios are typical post-compression fractions of raw UTF-8 size.
+ * decodeMBs is a rough expected decompression throughput (uncompressed
+ * MB/s) — back-of-envelope for read-path cost, not a codec benchmark.
  *
- * @typedef {{ id: string, label: string, ratio: number, hint?: string }} CompressionPreset
+ * @typedef {{
+ *   id: string,
+ *   label: string,
+ *   ratio: number,
+ *   decodeMBs: number,
+ *   hint?: string
+ * }} CompressionPreset
  */
 
 /** @type {ReadonlyArray<CompressionPreset>} */
@@ -39,29 +46,48 @@ export const COMPRESSION_PRESETS = Object.freeze([
     id: "gz",
     label: "gz",
     ratio: 0.33,
-    hint: "gzip — typical ~3× on JSON/text"
+    decodeMBs: 300,
+    hint: "gzip — ~3× size, ~300 MB/s decode"
   }),
   Object.freeze({
     id: "zstd-1",
     label: "zstd(1)",
     ratio: 0.3,
-    hint: "zstd level 1 — fast, modest ratio"
+    decodeMBs: 1000,
+    hint: "zstd level 1 — fast, ~1 GB/s decode"
   }),
   Object.freeze({
     id: "zstd-11",
     label: "zstd(11)",
     ratio: 0.22,
-    hint: "zstd level 11 — balanced"
+    decodeMBs: 700,
+    hint: "zstd level 11 — balanced, ~700 MB/s decode"
   }),
   Object.freeze({
     id: "zstd-22",
     label: "zstd(22)",
     ratio: 0.17,
-    hint: "zstd level 22 — max ratio, slow"
+    decodeMBs: 500,
+    hint: "zstd level 22 — max ratio, ~500 MB/s decode"
   })
 ]);
 
 export function getCompressionPreset(id) {
   if (!id) return null;
   return COMPRESSION_PRESETS.find((preset) => preset.id === id) ?? null;
+}
+
+/**
+ * Compact decode-speed label for helper text.
+ * @param {number} megabytesPerSecond
+ */
+export function formatDecodeSpeed(megabytesPerSecond) {
+  const rate = Number(megabytesPerSecond);
+  if (!Number.isFinite(rate) || rate <= 0) return "—";
+  if (rate >= 1000) {
+    const gb = rate / 1000;
+    const rounded = gb >= 10 ? Math.round(gb) : Math.round(gb * 10) / 10;
+    return `${rounded} GB/s`;
+  }
+  return `${Math.round(rate)} MB/s`;
 }

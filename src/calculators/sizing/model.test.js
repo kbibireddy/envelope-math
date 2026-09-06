@@ -62,6 +62,7 @@ describe("estimateSizing", () => {
     expect(gz.bytesPerRecord).toBeCloseTo(4 * 0.33);
     expect(gz.year0Bytes).toBeCloseTo(4000 * 0.33);
     expect(gz.compressionId).toBe("gz");
+    expect(gz.compressionLabel).toMatch(/gz · ~3× smaller · ~300 MB\/s decode/);
   });
 });
 

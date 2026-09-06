@@ -137,6 +137,12 @@ describe("formatting helpers", () => {
     expect(formatDetailNumber(tiny)).toBe("0");
     expect(toPlainDecimal(tiny)).toBe("0");
   });
+
+  it("renders extremely large plain decimals without scientific notation", () => {
+    expect(toPlainDecimal(1e15)).toBe("1000000000000000");
+    expect(toPlainDecimal(-2e16)).toBe("-20000000000000000");
+    expect(toPlainDecimal(1.25)).toBe("1.25");
+  });
 });
 
 describe("growth projection", () => {

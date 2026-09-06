@@ -62,16 +62,11 @@ export function toPlainDecimal(value, maxFractionDigits = 12) {
     return `${sign}${Math.round(abs).toLocaleString("en-US", { useGrouping: false })}`;
   }
 
+  // Sub-micro leftovers are noise for storage UI.
+  if (abs < 1e-6) return "0";
+
   // Prefer toFixed for values that JS would otherwise stringify with "e".
-  let raw;
-  if (abs >= 1e-6 && abs < 1e15) {
-    raw = abs.toFixed(maxFractionDigits);
-  } else if (abs < 1e-6) {
-    // Sub-micro leftovers are noise for storage UI.
-    return "0";
-  } else {
-    raw = abs.toFixed(0);
-  }
+  let raw = abs.toFixed(maxFractionDigits);
 
   // Trim trailing zeros / dangling decimal point.
   raw = raw.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");

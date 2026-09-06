@@ -44,11 +44,12 @@ export function getCalculator(id) {
   return CALCULATORS.find((product) => product.id === id) ?? null;
 }
 
-/** Prefer the first available product; throw if the registry is empty of mounts. */
-export function getDefaultCalculator() {
-  const available = CALCULATORS.find(
-    (product) => product.status === "available"
-  );
+/**
+ * Prefer the first available product; throw if none are available.
+ * @param {ReadonlyArray<CalculatorProduct>} [catalog]
+ */
+export function getDefaultCalculator(catalog = CALCULATORS) {
+  const available = catalog.find((product) => product.status === "available");
   if (!available) {
     throw new Error("No available calculators are registered");
   }

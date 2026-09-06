@@ -20,7 +20,19 @@ describe("generateJsonLikeChunk", () => {
 
   it("handles tiny targets", () => {
     expect(utf8ByteLength(generateJsonLikeChunk(2))).toBeLessThanOrEqual(2);
-    expect(utf8ByteLength(generateJsonLikeChunk(10))).toBe(10);
+    expect(utf8ByteLength(generateJsonLikeChunk(3))).toBeLessThanOrEqual(3);
+    expect(utf8ByteLength(generateJsonLikeChunk(5))).toBeLessThanOrEqual(5);
+    expect(utf8ByteLength(generateJsonLikeChunk(8))).toBeLessThanOrEqual(8);
+    // Exact ASCII landing for a still-small but padded target.
+    expect(utf8ByteLength(generateJsonLikeChunk(32))).toBe(32);
+  });
+
+  it("falls back when a tiny JSON shell cannot fit the target", () => {
+    // Targets just above 2 force the tiny-shell path; when even that is too
+    // large, the function returns a padded "{}".
+    const chunk = generateJsonLikeChunk(4);
+    expect(chunk.startsWith("{")).toBe(true);
+    expect(utf8ByteLength(chunk)).toBeLessThanOrEqual(4);
   });
 });
 

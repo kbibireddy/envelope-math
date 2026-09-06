@@ -81,4 +81,12 @@ describe("calculator registry", () => {
       "reference"
     ]);
   });
+
+  it("throws when no available calculators are registered", () => {
+    expect(() =>
+      getDefaultCalculator([
+        { id: "soon", label: "Soon", status: "planned" }
+      ])
+    ).toThrow(/No available calculators/);
+  });
 });

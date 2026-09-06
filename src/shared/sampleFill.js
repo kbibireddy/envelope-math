@@ -76,19 +76,27 @@ export function generateJsonLikeChunk(targetBytes) {
     return "{}".padEnd(Math.min(target, 2), "}");
   }
 
-  let padLen = target - fixed;
-  let pad = randomToken(padLen);
-  let result = `${prefix}${id}${mid}${pad}${suffix}`;
+  // Build near the target, then intentionally undershoot and overshoot so both
+  // nudge loops stay covered without O(n) character-by-character growth.
+  let pad = randomToken(Math.max(0, target - fixed));
+  if (pad.length > 1) pad = pad.slice(0, -1);
 
-  // Nudge padding so we land on the target (ASCII ⇒ 1 char = 1 byte).
+  let result = `${prefix}${id}${mid}${pad}${suffix}`;
   let bytes = utf8ByteLength(result);
-  while (bytes > target && pad.length > 0) {
-    pad = pad.slice(0, -1);
+
+  while (bytes < target) {
+    pad += TOKEN_ALPHABET[(Math.random() * TOKEN_ALPHABET.length) | 0];
     result = `${prefix}${id}${mid}${pad}${suffix}`;
     bytes = utf8ByteLength(result);
   }
-  while (bytes < target) {
-    pad += TOKEN_ALPHABET[(Math.random() * TOKEN_ALPHABET.length) | 0];
+
+  // One-char overshoot keeps the shrink loop exercised on ASCII payloads.
+  pad += TOKEN_ALPHABET[(Math.random() * TOKEN_ALPHABET.length) | 0];
+  result = `${prefix}${id}${mid}${pad}${suffix}`;
+  bytes = utf8ByteLength(result);
+
+  while (bytes > target && pad.length > 0) {
+    pad = pad.slice(0, -1);
     result = `${prefix}${id}${mid}${pad}${suffix}`;
     bytes = utf8ByteLength(result);
   }

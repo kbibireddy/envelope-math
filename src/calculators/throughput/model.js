@@ -26,6 +26,7 @@ export const SECONDS_PER_DAY = 86_400;
  *   streamsHelper: string,
  *   rateColumn: string,
  *   rateSuffix: string,
+ *   rateLabel: string,
  *   templates: ReadonlyArray<{ name: string, actionsPerUserPerDay?: number, avgTps?: number }>,
  *   defaultStreams: ReadonlyArray<TrafficStream>
  * }} TrafficFocusConfig
@@ -58,6 +59,19 @@ export const STREAM_TEMPLATES = Object.freeze([
   Object.freeze({ name: "Fanout", actionsPerUserPerDay: 12 })
 ]);
 
+/** Shared avg-rate suggestions for databases / cache / queues (not DAU). */
+export const RATE_PRESETS = Object.freeze([
+  Object.freeze({ label: "100", value: 100 }),
+  Object.freeze({ label: "1K", value: 1_000 }),
+  Object.freeze({ label: "5K", value: 5_000 }),
+  Object.freeze({ label: "10K", value: 10_000 }),
+  Object.freeze({ label: "20K", value: 20_000 }),
+  Object.freeze({ label: "50K", value: 50_000 }),
+  Object.freeze({ label: "100K", value: 100_000 }),
+  Object.freeze({ label: "500K", value: 500_000 }),
+  Object.freeze({ label: "1M", value: 1_000_000 })
+]);
+
 /**
  * Traffic input copy + defaults per investigation.
  * DAU/MAU only applies to app servers / edge; internal systems use rate units.
@@ -72,6 +86,7 @@ export const TRAFFIC_BY_FOCUS = Object.freeze({
       "DAU/MAU and actions/user/day — for app servers and load balancers.",
     rateColumn: "Actions/user/day",
     rateSuffix: "/user/day",
+    rateLabel: "Audience",
     templates: STREAM_TEMPLATES,
     defaultStreams: Object.freeze([
       Object.freeze({
@@ -88,56 +103,56 @@ export const TRAFFIC_BY_FOCUS = Object.freeze({
   }),
   database: Object.freeze({
     mode: /** @type {TrafficMode} */ ("rate"),
-    audienceLabel: "Audience",
-    streamsTitle: "Query / request rate",
+    audienceLabel: "Avg RPS",
+    streamsTitle: "Query split (optional)",
     streamsHelper:
-      "Average requests per second hitting the store — not end-user DAU.",
+      "Enter plain avg RPS/TPS above — not DAU/MAU. Optionally split read/write below.",
     rateColumn: "Avg RPS",
     rateSuffix: "RPS",
+    rateLabel: "Avg RPS",
     templates: Object.freeze([
       Object.freeze({ name: "Read", avgTps: 5_000 }),
       Object.freeze({ name: "Write", avgTps: 500 }),
       Object.freeze({ name: "Query", avgTps: 1_000 })
     ]),
     defaultStreams: Object.freeze([
-      Object.freeze({ id: "read", name: "Read", avgTps: 5_000 }),
-      Object.freeze({ id: "write", name: "Write", avgTps: 500 })
+      Object.freeze({ id: "total", name: "Total", avgTps: 5_000 })
     ])
   }),
   cache: Object.freeze({
     mode: /** @type {TrafficMode} */ ("rate"),
-    audienceLabel: "Audience",
-    streamsTitle: "Cache ops rate",
+    audienceLabel: "Avg TPS",
+    streamsTitle: "Ops split (optional)",
     streamsHelper:
-      "Average operations per second on the cache tier (GET/SET/…).",
+      "Enter plain avg ops/s above — not DAU/MAU. Optionally split GET/SET below.",
     rateColumn: "Avg ops/s",
     rateSuffix: "ops/s",
+    rateLabel: "Avg ops/s",
     templates: Object.freeze([
       Object.freeze({ name: "GET", avgTps: 20_000 }),
       Object.freeze({ name: "SET", avgTps: 2_000 }),
       Object.freeze({ name: "DELETE", avgTps: 200 })
     ]),
     defaultStreams: Object.freeze([
-      Object.freeze({ id: "get", name: "GET", avgTps: 20_000 }),
-      Object.freeze({ id: "set", name: "SET", avgTps: 2_000 })
+      Object.freeze({ id: "total", name: "Total", avgTps: 20_000 })
     ])
   }),
   queue: Object.freeze({
     mode: /** @type {TrafficMode} */ ("rate"),
-    audienceLabel: "Audience",
-    streamsTitle: "Message rate",
+    audienceLabel: "Avg TPS",
+    streamsTitle: "Message split (optional)",
     streamsHelper:
-      "Average messages per second for produce / consume paths.",
+      "Enter plain avg msg/s above — not DAU/MAU. Optionally split produce/consume below.",
     rateColumn: "Avg msg/s",
     rateSuffix: "msg/s",
+    rateLabel: "Avg msg/s",
     templates: Object.freeze([
       Object.freeze({ name: "Produce", avgTps: 3_000 }),
       Object.freeze({ name: "Consume", avgTps: 3_000 }),
       Object.freeze({ name: "Retry", avgTps: 100 })
     ]),
     defaultStreams: Object.freeze([
-      Object.freeze({ id: "produce", name: "Produce", avgTps: 3_000 }),
-      Object.freeze({ id: "consume", name: "Consume", avgTps: 3_000 })
+      Object.freeze({ id: "total", name: "Total", avgTps: 5_000 })
     ])
   })
 });

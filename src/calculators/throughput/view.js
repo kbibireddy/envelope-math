@@ -8,6 +8,7 @@ import {
 import {
   AUDIENCE_PRESETS,
   PEAK_PRESETS,
+  RATE_PRESETS,
   THROUGHPUT_DEFAULTS,
   estimateThroughput,
   formatTps,
@@ -38,6 +39,8 @@ export function mountThroughputCalculator(root) {
     capacityProfileId: /** @type {string | null} */ (null),
     customAudience: false,
     customPeak: false,
+    customRate: false,
+    rateAvgTps: 5_000,
     streams: THROUGHPUT_DEFAULTS.streams.map((stream) => ({ ...stream }))
   };
 
@@ -45,6 +48,9 @@ export function mountThroughputCalculator(root) {
   const investigationMeta = $("investigationMeta", root);
   const trafficBlock = $("trafficBlock", root);
   const audienceBlock = $("audienceBlock", root);
+  const rateBlock = $("rateBlock", root);
+  const rateLabel = $("rateLabel", root);
+  const rateMeta = $("rateMeta", root);
   const audienceMeta = $("audienceMeta", root);
   const peakMeta = $("peakMeta", root);
   const streamsLabel = $("streamsLabel", root);
@@ -130,6 +136,76 @@ export function mountThroughputCalculator(root) {
     }
   });
 
+  /** @type {{ sync: () => void, clear?: () => void }} */
+  let rateChips;
+  /** @type {{ sync: () => void, clear: () => void }} */
+  let customRateChip;
+
+  /**
+   * Apply a plain average rate to the rate-mode stream list.
+   * Keeps a single Total stream so chips stay the source of truth.
+   * @param {number} avgTps
+   * @param {boolean} [asCustom]
+   */
+  function applyRateAvgTps(avgTps, asCustom = false) {
+    const value = Math.max(0, Number(avgTps) || 0);
+    state.rateAvgTps = value;
+    state.customRate = asCustom;
+    state.streams = [
+      {
+        id: state.streams[0]?.id ?? nextStreamId("total"),
+        name: "Total",
+        avgTps: value
+      }
+    ];
+    rateChips.sync();
+    customRateChip.sync();
+    renderStreamEditor();
+  }
+
+  /** Sync chip selection from the sum of current rate streams. */
+  function syncRateFromStreams() {
+    const traffic = trafficConfigForFocus(state.investigationId);
+    if (!traffic || traffic.mode !== "rate") return;
+    const total = state.streams.reduce(
+      (sum, stream) => sum + Math.max(0, Number(stream.avgTps) || 0),
+      0
+    );
+    state.rateAvgTps = total;
+    state.customRate = !RATE_PRESETS.some((preset) => preset.value === total);
+    rateChips.sync();
+    customRateChip.sync();
+  }
+
+  rateChips = createPresetChips({
+    container: $("rateChips", root),
+    presets: RATE_PRESETS,
+    getValue: () => state.rateAvgTps,
+    isCustom: () => state.customRate,
+    onSelect: (preset) => {
+      applyRateAvgTps(preset.value, false);
+      customRateChip.clear();
+      render();
+    }
+  });
+
+  customRateChip = bindCustomValueChip({
+    container: $("rateChips", root),
+    idPrefix: "customRate",
+    triggerLabel: "Enter…",
+    placeholder: "Avg rate",
+    integer: false,
+    min: 0,
+    max: 100_000_000,
+    maxError: "Max average rate is 100M.",
+    isActive: () => state.customRate,
+    getDisplayValue: () => (state.customRate ? state.rateAvgTps : null),
+    onApply: (value) => {
+      applyRateAvgTps(value, true);
+      render();
+    }
+  });
+
   const peakChips = createPresetChips({
     container: $("peakChips", root),
     presets: PEAK_PRESETS,
@@ -189,6 +265,7 @@ export function mountThroughputCalculator(root) {
         name: "Custom",
         avgTps: 100
       });
+      syncRateFromStreams();
     } else {
       state.streams.push({
         id: nextStreamId("custom"),
@@ -204,6 +281,18 @@ export function mountThroughputCalculator(root) {
     const traffic = trafficConfigForFocus(focusId);
     if (!traffic) return;
     state.streams = traffic.defaultStreams.map((stream) => ({ ...stream }));
+    if (traffic.mode === "rate") {
+      state.rateAvgTps = state.streams.reduce(
+        (sum, stream) => sum + Math.max(0, Number(stream.avgTps) || 0),
+        0
+      );
+      state.customRate = !RATE_PRESETS.some(
+        (preset) => preset.value === state.rateAvgTps
+      );
+      rateChips.sync();
+      customRateChip.sync();
+      customRateChip.clear();
+    }
     renderStreamTemplates();
     renderStreamEditor();
   }
@@ -263,6 +352,7 @@ export function mountThroughputCalculator(root) {
             name: template.name,
             avgTps: template.avgTps ?? 0
           });
+          syncRateFromStreams();
         } else {
           state.streams.push({
             id: nextStreamId(template.name.toLowerCase()),
@@ -383,8 +473,12 @@ export function mountThroughputCalculator(root) {
       );
       rateInput.addEventListener("input", () => {
         const value = Math.max(0, Number(rateInput.value) || 0);
-        if (rateMode) stream.avgTps = value;
-        else stream.actionsPerUserPerDay = value;
+        if (rateMode) {
+          stream.avgTps = value;
+          syncRateFromStreams();
+        } else {
+          stream.actionsPerUserPerDay = value;
+        }
         render();
       });
       const rateCaption = document.createElement("span");
@@ -399,6 +493,7 @@ export function mountThroughputCalculator(root) {
       removeBtn.addEventListener("click", () => {
         if (state.streams.length <= 1) return;
         state.streams = state.streams.filter((item) => item.id !== stream.id);
+        if (rateMode) syncRateFromStreams();
         renderStreamEditor();
         render();
       });
@@ -473,6 +568,7 @@ export function mountThroughputCalculator(root) {
     trafficBlock.hidden = !hasFocus;
     capacityBlock.hidden = !hasFocus;
     audienceBlock.hidden = !(hasFocus && traffic?.mode === "audience");
+    rateBlock.hidden = !(hasFocus && traffic?.mode === "rate");
 
     setText(investigationMeta, focus?.hint ?? "Pick a focus to continue");
 
@@ -480,6 +576,7 @@ export function mountThroughputCalculator(root) {
       setText(streamsLabel, traffic.streamsTitle);
       setText(streamsHelper, traffic.streamsHelper);
       setText(streamRateColumn, traffic.rateColumn);
+      setText(rateLabel, traffic.rateLabel);
       setText(capacityIntro, `Systems for ${focus.label}.`);
       setText(
         footnoteTraffic,
@@ -507,6 +604,12 @@ export function mountThroughputCalculator(root) {
     });
 
     setText(audienceMeta, audienceConversionLabel(estimate));
+    setText(
+      rateMeta,
+      traffic?.mode === "rate"
+        ? `${estimate.totalAvgTpsLabel} avg · ${estimate.totalPeakTpsLabel} peak ${traffic.rateSuffix}`
+        : ""
+    );
     setText(peakMeta, `${estimate.peakMultiplier}× over flat avg`);
     setAnimatedText(totalAvgTps, hasFocus ? estimate.totalAvgTpsLabel : "0");
     setAnimatedText(totalPeakTps, hasFocus ? estimate.totalPeakTpsLabel : "0");

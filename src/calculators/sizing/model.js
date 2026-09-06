@@ -11,6 +11,8 @@ import {
   COMPRESSION_PRESETS,
   GROWTH_PRESETS,
   MULTIPLIER_PRESETS,
+  estimateDecodeLatencyMs,
+  formatDecodeLatency,
   formatDecodeSpeed,
   getCompressionPreset
 } from "../../shared/presets.js";
@@ -56,7 +58,14 @@ export function estimateSizing({
   });
 
   const compressionLabel = compression
-    ? `${compression.label} · ~${Math.round((1 / ratio) * 10) / 10}× smaller · ~${formatDecodeSpeed(compression.decodeMBs)} decode`
+    ? [
+        compression.label,
+        `~${Math.round((1 / ratio) * 10) / 10}× smaller`,
+        `~${formatDecodeSpeed(compression.decodeMBs)}`,
+        `${formatDecodeLatency(
+          estimateDecodeLatencyMs(rawBytesPerRecord, compression.decodeMBs)
+        )}/record`
+      ].join(" · ")
     : "Off · raw UTF-8 size";
 
   const summaryBits = [

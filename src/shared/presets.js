@@ -91,3 +91,43 @@ export function formatDecodeSpeed(megabytesPerSecond) {
   }
   return `${Math.round(rate)} MB/s`;
 }
+
+/**
+ * Expected wall time to decompress `uncompressedBytes` at `decodeMBs`.
+ * Throughput is treated as MiB/s of uncompressed output.
+ * @param {number} uncompressedBytes
+ * @param {number} decodeMBs
+ */
+export function estimateDecodeLatencyMs(uncompressedBytes, decodeMBs) {
+  const bytes = Number(uncompressedBytes);
+  const rate = Number(decodeMBs);
+  if (!Number.isFinite(bytes) || bytes <= 0) return 0;
+  if (!Number.isFinite(rate) || rate <= 0) return Infinity;
+  const bytesPerSecond = rate * 1024 * 1024;
+  return (bytes / bytesPerSecond) * 1000;
+}
+
+/**
+ * Human label for a tiny decode cost (µs or ms).
+ * @param {number} latencyMs
+ */
+export function formatDecodeLatency(latencyMs) {
+  const ms = Number(latencyMs);
+  if (!Number.isFinite(ms) || ms < 0) return "—";
+  if (ms === 0) return "0 µs";
+  if (ms < 0.001) {
+    const ns = ms * 1_000_000;
+    return ns < 10
+      ? `~${ns.toPrecision(2)} ns`
+      : `~${Math.round(ns)} ns`;
+  }
+  if (ms < 1) {
+    const us = ms * 1000;
+    return us < 10
+      ? `~${us.toPrecision(2)} µs`
+      : `~${Math.round(us)} µs`;
+  }
+  if (ms < 10) return `~${ms.toPrecision(2)} ms`;
+  if (ms < 1000) return `~${Math.round(ms)} ms`;
+  return `~${(ms / 1000).toPrecision(2)} s`;
+}

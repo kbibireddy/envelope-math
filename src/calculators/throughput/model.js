@@ -33,12 +33,13 @@ export const SECONDS_PER_DAY = 86_400;
 
 /** @type {ReadonlyArray<{ label: string, value: number, hint?: string }>} */
 export const AUDIENCE_PRESETS = Object.freeze([
-  Object.freeze({ label: "10K", value: 10_000 }),
   Object.freeze({ label: "100K", value: 100_000 }),
   Object.freeze({ label: "1M", value: 1_000_000 }),
   Object.freeze({ label: "10M", value: 10_000_000 }),
   Object.freeze({ label: "50M", value: 50_000_000 }),
-  Object.freeze({ label: "100M", value: 100_000_000 })
+  Object.freeze({ label: "100M", value: 100_000_000 }),
+  Object.freeze({ label: "1B", value: 1_000_000_000 }),
+  Object.freeze({ label: "10B", value: 10_000_000_000 })
 ]);
 
 /** @type {ReadonlyArray<{ label: string, value: number, hint?: string }>} */

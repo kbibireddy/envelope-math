@@ -33,22 +33,22 @@ export const INVESTIGATION_FOCUSES = Object.freeze([
   Object.freeze({
     id: "app",
     label: "App servers",
-    hint: "Edge traffic via DAU/MAU — size app servers and load balancers."
+    hint: "DAU/MAU edge traffic → app servers & load balancers"
   }),
   Object.freeze({
     id: "database",
     label: "Databases",
-    hint: "Internal query/request RPS — not end-user DAU. Size the primary store."
+    hint: "Query / request RPS → primary store capacity"
   }),
   Object.freeze({
     id: "cache",
     label: "Cache",
-    hint: "Cache ops/s on the hot path — usually far above database RPS."
+    hint: "Ops/s on the hot path → cache tier capacity"
   }),
   Object.freeze({
     id: "queue",
-    label: "Queues & streams",
-    hint: "Produce/consume message rates for async pipelines."
+    label: "Queues",
+    hint: "Messages/s → produce & consume capacity"
   })
 ]);
 

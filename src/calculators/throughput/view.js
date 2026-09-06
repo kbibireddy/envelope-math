@@ -34,7 +34,7 @@ export function mountThroughputCalculator(root) {
     peakMultiplier: THROUGHPUT_DEFAULTS.peakMultiplier,
     payloadBytes: THROUGHPUT_DEFAULTS.payloadBytes,
     nodeCapacityTps: THROUGHPUT_DEFAULTS.nodeCapacityTps,
-    investigationId: /** @type {string | null} */ (null),
+    investigationId: /** @type {string | null} */ ("app"),
     capacityProfileId: /** @type {string | null} */ (null),
     customAudience: false,
     customPeak: false,
@@ -212,9 +212,12 @@ export function mountThroughputCalculator(root) {
     for (const focus of INVESTIGATION_FOCUSES) {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "chip";
+      btn.className = "mode-switch-btn";
       btn.textContent = focus.label;
-      btn.classList.toggle("active", state.investigationId === focus.id);
+      btn.setAttribute("role", "radio");
+      const selected = state.investigationId === focus.id;
+      btn.classList.toggle("active", selected);
+      btn.setAttribute("aria-checked", selected ? "true" : "false");
       btn.addEventListener("click", () => {
         const switching = state.investigationId !== focus.id;
         state.investigationId = focus.id;
@@ -330,6 +333,14 @@ export function mountThroughputCalculator(root) {
       btn.classList.toggle("active", active);
       btn.setAttribute("aria-pressed", active ? "true" : "false");
     }
+  }
+
+  /**
+   * @param {ReturnType<typeof estimateThroughput>} estimate
+   */
+  function audienceConversionLabel(estimate) {
+    if (estimate.trafficMode === "rate") return estimate.audienceLabel;
+    return `${estimate.audienceLabel} → ${estimate.totalAvgTpsLabel} avg · ${estimate.totalPeakTpsLabel} peak TPS`;
   }
 
   function renderStreamEditor() {
@@ -492,8 +503,8 @@ export function mountThroughputCalculator(root) {
       streams: hasFocus ? state.streams : []
     });
 
-    setText(audienceMeta, estimate.audienceLabel);
-    setText(peakMeta, `Peak ${estimate.peakMultiplier}× over a flat average`);
+    setText(audienceMeta, audienceConversionLabel(estimate));
+    setText(peakMeta, `${estimate.peakMultiplier}× over flat avg`);
     setAnimatedText(totalAvgTps, hasFocus ? estimate.totalAvgTpsLabel : "0");
     setAnimatedText(totalPeakTps, hasFocus ? estimate.totalPeakTpsLabel : "0");
     setText(
@@ -535,6 +546,7 @@ export function mountThroughputCalculator(root) {
 
   syncModeButtons();
   renderInvestigationChips();
+  applyFocusDefaults("app");
   renderProfileChips();
   renderStreamTemplates();
   renderStreamEditor();

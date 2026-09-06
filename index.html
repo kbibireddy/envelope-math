@@ -147,37 +147,42 @@
         <h2 id="throughput-inputs-title">Throughput estimation</h2>
 
         <div class="section compact">
-          <h3>Investigation</h3>
-          <p class="helper">
-            Pick one layer at a time. Traffic inputs change to match that layer
-            — DAU/MAU for app servers, RPS / ops / messages for internal systems.
-          </p>
-          <span class="field-label" id="investigationLabel">Focus</span>
-          <div
-            class="chips"
-            id="investigationChips"
-            role="group"
-            aria-labelledby="investigationLabel"
-          ></div>
-          <p class="helper" id="investigationMeta">Pick a focus to continue</p>
+          <div class="focus-bar">
+            <span class="field-label" id="investigationLabel">Layer</span>
+            <div
+              class="mode-switch focus-switch"
+              id="investigationChips"
+              role="radiogroup"
+              aria-labelledby="investigationLabel"
+            ></div>
+          </div>
+          <p class="helper" id="investigationMeta">Choose a layer to size</p>
         </div>
 
         <div class="section compact" id="trafficBlock" hidden>
           <div class="scale-stack">
-            <div class="scale-row" id="audienceBlock" hidden>
-              <span class="field-label" id="audienceModeLabel">Audience</span>
-              <div class="chips" role="group" aria-labelledby="audienceModeLabel">
-                <button type="button" class="chip" data-audience-mode="dau" aria-pressed="false">DAU</button>
-                <button type="button" class="chip" data-audience-mode="mau" aria-pressed="false">MAU</button>
+            <div class="traffic-row" id="audiencePeakRow">
+              <div class="scale-row traffic-col" id="audienceBlock" hidden>
+                <div class="traffic-col-head">
+                  <span class="field-label" id="audienceModeLabel">Audience</span>
+                  <div
+                    class="mode-switch"
+                    role="group"
+                    aria-labelledby="audienceModeLabel"
+                  >
+                    <button type="button" class="mode-switch-btn" data-audience-mode="dau" aria-pressed="false">DAU</button>
+                    <button type="button" class="mode-switch-btn" data-audience-mode="mau" aria-pressed="false">MAU</button>
+                  </div>
+                </div>
+                <div class="chips" id="audienceChips" role="group" aria-label="Audience size"></div>
+                <p class="helper" id="audienceMeta">1M DAU</p>
               </div>
-              <div class="chips" id="audienceChips" role="group" aria-label="Audience size"></div>
-              <p class="helper" id="audienceMeta">1M DAU</p>
-            </div>
 
-            <div class="scale-row">
-              <span class="field-label" id="peakLabel">Peak multiplier</span>
-              <div class="chips" id="peakChips" role="group" aria-labelledby="peakLabel"></div>
-              <p class="helper" id="peakMeta">Peak 3× over a flat average</p>
+              <div class="scale-row traffic-col" id="peakBlock">
+                <span class="field-label" id="peakLabel">Peak</span>
+                <div class="chips" id="peakChips" role="group" aria-labelledby="peakLabel"></div>
+                <p class="helper" id="peakMeta">Peak 3× over a flat average</p>
+              </div>
             </div>
           </div>
 
@@ -279,9 +284,9 @@
         </div>
 
         <p class="footnote" id="throughputFootnote">
-          Pick an investigation to begin. App servers use DAU/MAU × actions/user/day.
-          Databases, cache, and queues use direct rate inputs (RPS / ops/s / msg/s).
-          Peak TPS = avg × peak multiplier. Runs in your browser.
+          Pick a layer to begin. App servers use DAU/MAU × actions/user/day.
+          Databases, cache, and queues use direct rates (RPS / ops/s / msg/s).
+          Runs in your browser.
         </p>
       </section>
     </div>

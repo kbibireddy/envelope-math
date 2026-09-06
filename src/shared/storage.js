@@ -122,6 +122,19 @@ export function formatDetailNumber(value) {
   });
 }
 
+/**
+ * Unit-grid formatter: commas + up to 4 significant digits.
+ * No K/M/B here — the unit label (bytes/KB/MB…) already carries scale.
+ */
+export function formatGridNumber(value) {
+  if (!Number.isFinite(value) || value === 0) return "0";
+  const compact = toSignificantDigits(value, 4);
+  return compact.toLocaleString("en-US", {
+    maximumFractionDigits: 6,
+    useGrouping: true
+  });
+}
+
 /** @deprecated Prefer formatCompactNumber — kept as the main-view alias. */
 export function formatUnitValue(value) {
   return formatCompactNumber(value);
@@ -150,7 +163,7 @@ export function sizeBreakdown(bytes) {
       key: unit.key,
       label: unit.label,
       value,
-      display: formatCompactNumber(value)
+      display: formatGridNumber(value)
     });
   }
 
@@ -159,7 +172,7 @@ export function sizeBreakdown(bytes) {
 
 /**
  * Full B→PB ladder for info popovers (always all six units).
- * Detail formatting: ≤ 2 digits after the decimal.
+ * Detail formatting: ≤ 2 digits after the decimal, with commas.
  */
 export function fullSizeBreakdown(bytes) {
   const safeBytes = Number.isFinite(bytes) && bytes > 0 ? bytes : 0;

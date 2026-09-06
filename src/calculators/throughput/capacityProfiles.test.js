@@ -36,7 +36,7 @@ describe("investigation focuses", () => {
   });
 
   it("looks up focus and profile metadata", () => {
-    expect(getInvestigationFocus("database")?.hint).toMatch(/store/i);
+    expect(getInvestigationFocus("database")?.hint).toMatch(/store|RPS|query/i);
     expect(getCapacityProfile("postgres")?.conservativeTps).toBe(5_000);
     expect(getCapacityProfile("missing")).toBeNull();
   });

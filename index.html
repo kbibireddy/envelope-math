@@ -147,8 +147,24 @@
         <h2 id="throughput-inputs-title">Throughput estimation</h2>
 
         <div class="section compact">
+          <h3>Investigation</h3>
+          <p class="helper">
+            Pick one layer at a time. Traffic inputs change to match that layer
+            — DAU/MAU for app servers, RPS / ops / messages for internal systems.
+          </p>
+          <span class="field-label" id="investigationLabel">Focus</span>
+          <div
+            class="chips"
+            id="investigationChips"
+            role="group"
+            aria-labelledby="investigationLabel"
+          ></div>
+          <p class="helper" id="investigationMeta">Pick a focus to continue</p>
+        </div>
+
+        <div class="section compact" id="trafficBlock" hidden>
           <div class="scale-stack">
-            <div class="scale-row">
+            <div class="scale-row" id="audienceBlock" hidden>
               <span class="field-label" id="audienceModeLabel">Audience</span>
               <div class="chips" role="group" aria-labelledby="audienceModeLabel">
                 <button type="button" class="chip" data-audience-mode="dau" aria-pressed="false">DAU</button>
@@ -161,63 +177,47 @@
             <div class="scale-row">
               <span class="field-label" id="peakLabel">Peak multiplier</span>
               <div class="chips" id="peakChips" role="group" aria-labelledby="peakLabel"></div>
-              <p class="helper" id="peakMeta">Peak 3× over a flat-day average</p>
+              <p class="helper" id="peakMeta">Peak 3× over a flat average</p>
             </div>
           </div>
-        </div>
 
-        <div class="section compact">
           <div class="section-head">
             <h3 id="streamsLabel">Traffic streams</h3>
             <button type="button" class="text-btn" id="addStreamBtn">+ Custom</button>
           </div>
-          <p class="helper">Each stream is actions/user/day (read, write, search, …).</p>
+          <p class="helper" id="streamsHelper">Each stream is actions/user/day.</p>
           <div class="chips stream-template-chips" id="streamTemplates" role="group" aria-label="Add stream template"></div>
           <div class="stream-list" id="streamList"></div>
         </div>
 
-        <div class="section compact">
+        <div class="section compact" id="capacityBlock" hidden>
           <h3>Capacity check</h3>
-          <p class="helper">
-            What are you investigating right now? Options stay scoped to that
-            layer so you are not sizing Postgres while looking at app servers.
-          </p>
-          <span class="field-label" id="investigationLabel">Investigation</span>
+          <p class="helper" id="capacityIntro">Systems for this investigation.</p>
+          <span class="field-label" id="capacitySystemLabel">System</span>
           <div
-            class="chips"
-            id="investigationChips"
+            class="chips capacity-profile-chips"
+            id="capacityProfileChips"
             role="group"
-            aria-labelledby="investigationLabel"
+            aria-labelledby="capacitySystemLabel"
           ></div>
-          <p class="helper" id="investigationMeta">Pick a focus to see relevant systems</p>
 
-          <div id="capacitySystemBlock" hidden>
-            <span class="field-label" id="capacitySystemLabel">System</span>
-            <div
-              class="chips capacity-profile-chips"
-              id="capacityProfileChips"
-              role="group"
-              aria-labelledby="capacitySystemLabel"
-            ></div>
-
-            <div class="capacity-grid">
-              <label class="field-stack">
-                <span class="field-label" for="payloadBytes">Payload bytes / request</span>
-                <input id="payloadBytes" type="number" min="0" step="1" placeholder="e.g. 2048">
-              </label>
-              <label class="field-stack">
-                <span class="field-label" for="nodeCapacityTps" id="nodeCapacityLabel">TPS per unit</span>
-                <input id="nodeCapacityTps" type="number" min="0" step="1" placeholder="pick a system or enter">
-              </label>
-            </div>
-            <p class="helper" id="capacityMeta">Pick a system to size this layer</p>
-            <div class="capacity-guide" id="capacityGuide" hidden>
-              <p class="capacity-guide-title" id="capacityGuideTitle"></p>
-              <p class="capacity-guide-limits" id="capacityGuideLimits"></p>
-              <p class="capacity-guide-connections" id="capacityGuideConnections"></p>
-              <p class="capacity-guide-tip" id="capacityGuideTip"></p>
-              <p class="capacity-guide-assess" id="capacityGuideAssess"></p>
-            </div>
+          <div class="capacity-grid">
+            <label class="field-stack">
+              <span class="field-label" for="payloadBytes">Payload bytes / request</span>
+              <input id="payloadBytes" type="number" min="0" step="1" placeholder="e.g. 2048">
+            </label>
+            <label class="field-stack">
+              <span class="field-label" for="nodeCapacityTps" id="nodeCapacityLabel">TPS per unit</span>
+              <input id="nodeCapacityTps" type="number" min="0" step="1" placeholder="pick a system or enter">
+            </label>
+          </div>
+          <p class="helper" id="capacityMeta">Pick a system to size this layer</p>
+          <div class="capacity-guide" id="capacityGuide" hidden>
+            <p class="capacity-guide-title" id="capacityGuideTitle"></p>
+            <p class="capacity-guide-limits" id="capacityGuideLimits"></p>
+            <p class="capacity-guide-connections" id="capacityGuideConnections"></p>
+            <p class="capacity-guide-tip" id="capacityGuideTip"></p>
+            <p class="capacity-guide-assess" id="capacityGuideAssess"></p>
           </div>
         </div>
       </section>
@@ -234,7 +234,7 @@
                 <span class="num" id="totalAvgTps">0</span>
                 <span class="unit">TPS</span>
               </p>
-              <p class="compare-sub">Flat-day average across streams</p>
+              <p class="compare-sub">Flat average across streams</p>
             </div>
             <div class="footprint-summary footprint-summary-accent">
               <p class="compare-label">Peak TPS</p>
@@ -251,7 +251,7 @@
             <thead>
               <tr>
                 <th scope="col">Stream</th>
-                <th scope="col">Actions/user/day</th>
+                <th scope="col" id="streamRateColumn">Actions/user/day</th>
                 <th scope="col">Avg TPS</th>
                 <th scope="col">Peak TPS</th>
                 <th scope="col">Share</th>
@@ -278,12 +278,10 @@
           </div>
         </div>
 
-        <p class="footnote">
-          Avg TPS = daily users × actions/user/day ÷ 86,400.
-          Peak TPS = avg × peak multiplier. Pick one investigation at a time
-          (app servers, databases, cache, or queues) — capacity chips are
-          scoped to that layer with modern-system envelopes, not load-test
-          results. Runs in your browser.
+        <p class="footnote" id="throughputFootnote">
+          Pick an investigation to begin. App servers use DAU/MAU × actions/user/day.
+          Databases, cache, and queues use direct rate inputs (RPS / ops/s / msg/s).
+          Peak TPS = avg × peak multiplier. Runs in your browser.
         </p>
       </section>
     </div>

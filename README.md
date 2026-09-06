@@ -22,11 +22,11 @@ Interactive back-of-the-envelope calculators for storage sizing and capacity pla
 
 ### Throughput
 
-- Start from DAU or MAU (MAU ÷ 30 → daily users)
-- Add traffic streams (read / write / search / …) with actions per user per day
-- Apply a peak multiplier for busy periods
-- See average and peak TPS per stream and in total
-- Optional: payload bytes → bandwidth; TPS/node → nodes at peak
+- Pick one investigation at a time (app servers, databases, cache, or queues)
+- App servers: DAU/MAU + actions/user/day (edge / load-balancer traffic)
+- Databases / cache / queues: direct rate inputs (RPS, ops/s, or msg/s)
+- Apply a peak multiplier, then size the matching system envelopes
+- Optional: payload bytes → bandwidth; TPS/unit → units at peak
 
 Everything runs in the browser. No payload text is uploaded or stored.
 
@@ -39,7 +39,7 @@ src/
   calculators/
     registry.js    # product catalog + mount hooks
     sizing/        # storage footprint (model + view)
-    throughput/    # DAU/MAU → avg/peak TPS (model + view)
+    throughput/    # investigation-scoped traffic → avg/peak TPS (model + view)
   app.js           # shell: nav + host; swaps calculators without reloads
   styles/main.css
 ```

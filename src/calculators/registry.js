@@ -26,7 +26,7 @@ export const CALCULATORS = Object.freeze([
     label: "Throughput",
     status: "available",
     description:
-      "From DAU/MAU and per-use-case actions, estimate average and peak TPS — plus bandwidth and nodes.",
+      "Pick a layer (app, database, cache, or queue). App servers use DAU/MAU; internal systems use RPS / ops / messages.",
     mount: mountThroughputCalculator
   })
 ]);

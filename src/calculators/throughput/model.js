@@ -1,13 +1,34 @@
 /**
- * Throughput envelope math — DAU/MAU → avg / peak TPS by use-case stream.
+ * Throughput envelope math.
+ * App-server investigations: DAU/MAU × actions/user/day → TPS.
+ * Databases / cache / queues: direct average rate (RPS, ops/s, msg/s) → TPS.
  * Pure functions only (no DOM).
  */
 
 export const SECONDS_PER_DAY = 86_400;
 
 /**
- * @typedef {{ id: string, name: string, actionsPerUserPerDay: number }} TrafficStream
  * @typedef {'dau' | 'mau'} AudienceMode
+ * @typedef {'audience' | 'rate'} TrafficMode
+ * @typedef {'app' | 'database' | 'cache' | 'queue'} InvestigationId
+ *
+ * @typedef {{
+ *   id: string,
+ *   name: string,
+ *   actionsPerUserPerDay?: number,
+ *   avgTps?: number
+ * }} TrafficStream
+ *
+ * @typedef {{
+ *   mode: TrafficMode,
+ *   audienceLabel: string,
+ *   streamsTitle: string,
+ *   streamsHelper: string,
+ *   rateColumn: string,
+ *   rateSuffix: string,
+ *   templates: ReadonlyArray<{ name: string, actionsPerUserPerDay?: number, avgTps?: number }>,
+ *   defaultStreams: ReadonlyArray<TrafficStream>
+ * }} TrafficFocusConfig
  */
 
 /** @type {ReadonlyArray<{ label: string, value: number, hint?: string }>} */
@@ -28,13 +49,97 @@ export const PEAK_PRESETS = Object.freeze([
   Object.freeze({ label: "10×", value: 10, hint: "Viral / flash sale" })
 ]);
 
-/** Quick-add stream templates. */
+/** App-server stream templates (actions/user/day). */
 export const STREAM_TEMPLATES = Object.freeze([
   Object.freeze({ name: "Read", actionsPerUserPerDay: 40 }),
   Object.freeze({ name: "Write", actionsPerUserPerDay: 4 }),
   Object.freeze({ name: "Search", actionsPerUserPerDay: 8 }),
   Object.freeze({ name: "Fanout", actionsPerUserPerDay: 12 })
 ]);
+
+/**
+ * Traffic input copy + defaults per investigation.
+ * DAU/MAU only applies to app servers / edge; internal systems use rate units.
+ * @type {Readonly<Record<InvestigationId, TrafficFocusConfig>>}
+ */
+export const TRAFFIC_BY_FOCUS = Object.freeze({
+  app: Object.freeze({
+    mode: /** @type {TrafficMode} */ ("audience"),
+    audienceLabel: "Audience",
+    streamsTitle: "Edge traffic streams",
+    streamsHelper:
+      "DAU/MAU and actions/user/day — for app servers and load balancers.",
+    rateColumn: "Actions/user/day",
+    rateSuffix: "/user/day",
+    templates: STREAM_TEMPLATES,
+    defaultStreams: Object.freeze([
+      Object.freeze({
+        id: "read",
+        name: "Read",
+        actionsPerUserPerDay: 40
+      }),
+      Object.freeze({
+        id: "write",
+        name: "Write",
+        actionsPerUserPerDay: 4
+      })
+    ])
+  }),
+  database: Object.freeze({
+    mode: /** @type {TrafficMode} */ ("rate"),
+    audienceLabel: "Audience",
+    streamsTitle: "Query / request rate",
+    streamsHelper:
+      "Average requests per second hitting the store — not end-user DAU.",
+    rateColumn: "Avg RPS",
+    rateSuffix: "RPS",
+    templates: Object.freeze([
+      Object.freeze({ name: "Read", avgTps: 5_000 }),
+      Object.freeze({ name: "Write", avgTps: 500 }),
+      Object.freeze({ name: "Query", avgTps: 1_000 })
+    ]),
+    defaultStreams: Object.freeze([
+      Object.freeze({ id: "read", name: "Read", avgTps: 5_000 }),
+      Object.freeze({ id: "write", name: "Write", avgTps: 500 })
+    ])
+  }),
+  cache: Object.freeze({
+    mode: /** @type {TrafficMode} */ ("rate"),
+    audienceLabel: "Audience",
+    streamsTitle: "Cache ops rate",
+    streamsHelper:
+      "Average operations per second on the cache tier (GET/SET/…).",
+    rateColumn: "Avg ops/s",
+    rateSuffix: "ops/s",
+    templates: Object.freeze([
+      Object.freeze({ name: "GET", avgTps: 20_000 }),
+      Object.freeze({ name: "SET", avgTps: 2_000 }),
+      Object.freeze({ name: "DELETE", avgTps: 200 })
+    ]),
+    defaultStreams: Object.freeze([
+      Object.freeze({ id: "get", name: "GET", avgTps: 20_000 }),
+      Object.freeze({ id: "set", name: "SET", avgTps: 2_000 })
+    ])
+  }),
+  queue: Object.freeze({
+    mode: /** @type {TrafficMode} */ ("rate"),
+    audienceLabel: "Audience",
+    streamsTitle: "Message rate",
+    streamsHelper:
+      "Average messages per second for produce / consume paths.",
+    rateColumn: "Avg msg/s",
+    rateSuffix: "msg/s",
+    templates: Object.freeze([
+      Object.freeze({ name: "Produce", avgTps: 3_000 }),
+      Object.freeze({ name: "Consume", avgTps: 3_000 }),
+      Object.freeze({ name: "Retry", avgTps: 100 })
+    ]),
+    defaultStreams: Object.freeze([
+      Object.freeze({ id: "produce", name: "Produce", avgTps: 3_000 }),
+      Object.freeze({ id: "consume", name: "Consume", avgTps: 3_000 })
+    ])
+  })
+});
 
 export const THROUGHPUT_DEFAULTS = Object.freeze({
   audienceMode: /** @type {AudienceMode} */ ("dau"),
@@ -43,19 +148,18 @@ export const THROUGHPUT_DEFAULTS = Object.freeze({
   peakMultiplier: 3,
   payloadBytes: 0,
   nodeCapacityTps: 0,
-  streams: Object.freeze([
-    Object.freeze({
-      id: "read",
-      name: "Read",
-      actionsPerUserPerDay: 40
-    }),
-    Object.freeze({
-      id: "write",
-      name: "Write",
-      actionsPerUserPerDay: 4
-    })
-  ])
+  trafficMode: /** @type {TrafficMode} */ ("audience"),
+  streams: TRAFFIC_BY_FOCUS.app.defaultStreams
 });
+
+/**
+ * @param {string | null | undefined} investigationId
+ * @returns {TrafficFocusConfig | null}
+ */
+export function trafficConfigForFocus(investigationId) {
+  if (!investigationId || !(investigationId in TRAFFIC_BY_FOCUS)) return null;
+  return TRAFFIC_BY_FOCUS[/** @type {InvestigationId} */ (investigationId)];
+}
 
 /**
  * Convert audience input into an effective daily-active count.
@@ -143,8 +247,9 @@ export function nextStreamId(prefix = "stream") {
  * Pure throughput estimate.
  *
  * @param {{
- *   audienceMode: AudienceMode,
- *   audienceCount: number,
+ *   trafficMode?: TrafficMode,
+ *   audienceMode?: AudienceMode,
+ *   audienceCount?: number,
  *   activeDaysPerMonth?: number,
  *   peakMultiplier: number,
  *   payloadBytes?: number,
@@ -153,37 +258,49 @@ export function nextStreamId(prefix = "stream") {
  * }} input
  */
 export function estimateThroughput({
-  audienceMode,
-  audienceCount,
+  trafficMode = "audience",
+  audienceMode = THROUGHPUT_DEFAULTS.audienceMode,
+  audienceCount = THROUGHPUT_DEFAULTS.audienceCount,
   activeDaysPerMonth = THROUGHPUT_DEFAULTS.activeDaysPerMonth,
   peakMultiplier,
   payloadBytes = 0,
   nodeCapacityTps = 0,
   streams
 }) {
-  const dailyUsers = dailyActiveUsers({
-    audienceMode,
-    audienceCount,
-    activeDaysPerMonth
-  });
   const peak = Math.max(0, Number(peakMultiplier) || 0);
   const payload = Math.max(0, Number(payloadBytes) || 0);
   const nodeCap = Math.max(0, Number(nodeCapacityTps) || 0);
+  const mode = trafficMode === "rate" ? "rate" : "audience";
+
+  const dailyUsers =
+    mode === "audience"
+      ? dailyActiveUsers({
+          audienceMode,
+          audienceCount,
+          activeDaysPerMonth
+        })
+      : 0;
 
   const safeStreams = Array.isArray(streams) ? streams : [];
   const streamRows = safeStreams.map((stream) => {
-    const actionsPerUserPerDay = Math.max(
-      0,
-      Number(stream.actionsPerUserPerDay) || 0
-    );
-    const actionsPerDay = dailyUsers * actionsPerUserPerDay;
-    const avgTps = actionsPerDay / SECONDS_PER_DAY;
+    let avgTps = 0;
+    let actionsPerUserPerDay = 0;
+
+    if (mode === "rate") {
+      avgTps = Math.max(0, Number(stream.avgTps) || 0);
+    } else {
+      actionsPerUserPerDay = Math.max(
+        0,
+        Number(stream.actionsPerUserPerDay) || 0
+      );
+      avgTps = (dailyUsers * actionsPerUserPerDay) / SECONDS_PER_DAY;
+    }
+
     const peakTps = avgTps * peak;
     return {
       id: stream.id,
       name: stream.name || "Stream",
       actionsPerUserPerDay,
-      actionsPerDay,
       avgTps,
       peakTps,
       avgBandwidthBps: avgTps * payload,
@@ -200,19 +317,26 @@ export function estimateThroughput({
 
   const rowsWithShare = streamRows.map((row) => ({
     ...row,
-    shareOfPeak:
-      totalPeakTps > 0 ? row.peakTps / totalPeakTps : 0
+    shareOfPeak: totalPeakTps > 0 ? row.peakTps / totalPeakTps : 0
   }));
 
   const nodesNeeded =
     nodeCap > 0 ? Math.ceil(totalPeakTps / nodeCap) : null;
 
   const audienceLabel =
-    audienceMode === "mau"
-      ? `${formatAudience(audienceCount)} MAU ÷ 30 → ~${formatAudience(dailyUsers)} daily`
-      : `${formatAudience(dailyUsers)} DAU`;
+    mode === "rate"
+      ? "Direct rate input"
+      : audienceMode === "mau"
+        ? `${formatAudience(audienceCount)} MAU ÷ 30 → ~${formatAudience(dailyUsers)} daily`
+        : `${formatAudience(dailyUsers)} DAU`;
+
+  const summaryLine =
+    mode === "rate"
+      ? `${formatTps(totalAvgTps)} avg TPS · peak ${peak}×`
+      : `${audienceLabel} · ${totalActionsPerUserPerDay} actions/user/day · peak ${peak}×`;
 
   return {
+    trafficMode: mode,
     audienceMode,
     audienceCount,
     dailyUsers,
@@ -232,7 +356,7 @@ export function estimateThroughput({
     peakBandwidthLabel: formatBandwidth(totalPeakTps * payload),
     nodesNeeded,
     streams: rowsWithShare,
-    summaryLine: `${audienceLabel} · ${totalActionsPerUserPerDay} actions/user/day · peak ${peak}×`
+    summaryLine
   };
 }
 

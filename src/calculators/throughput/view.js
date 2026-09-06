@@ -8,11 +8,11 @@ import {
 import {
   AUDIENCE_PRESETS,
   PEAK_PRESETS,
-  STREAM_TEMPLATES,
   THROUGHPUT_DEFAULTS,
   estimateThroughput,
   formatTps,
-  nextStreamId
+  nextStreamId,
+  trafficConfigForFocus
 } from "./model.js";
 import {
   INVESTIGATION_FOCUSES,
@@ -23,7 +23,8 @@ import {
 } from "./capacityProfiles.js";
 
 /**
- * Mount the throughput calculator into a root that already contains markup.
+ * Mount the throughput calculator into markup already present under root.
+ * Investigation-first: DAU/MAU only for app servers; other layers use rate units.
  * @param {HTMLElement} root
  */
 export function mountThroughputCalculator(root) {
@@ -40,10 +41,28 @@ export function mountThroughputCalculator(root) {
     streams: THROUGHPUT_DEFAULTS.streams.map((stream) => ({ ...stream }))
   };
 
+  const investigationChips = $("investigationChips", root);
+  const investigationMeta = $("investigationMeta", root);
+  const trafficBlock = $("trafficBlock", root);
+  const audienceBlock = $("audienceBlock", root);
   const audienceMeta = $("audienceMeta", root);
   const peakMeta = $("peakMeta", root);
-  const streamList = $("streamList", root);
+  const streamsLabel = $("streamsLabel", root);
+  const streamsHelper = $("streamsHelper", root);
   const streamTemplates = $("streamTemplates", root);
+  const streamList = $("streamList", root);
+  const capacityBlock = $("capacityBlock", root);
+  const capacityIntro = $("capacityIntro", root);
+  const capacityProfileChips = $("capacityProfileChips", root);
+  const capacityMeta = $("capacityMeta", root);
+  const capacityGuide = $("capacityGuide", root);
+  const capacityGuideTitle = $("capacityGuideTitle", root);
+  const capacityGuideLimits = $("capacityGuideLimits", root);
+  const capacityGuideConnections = $("capacityGuideConnections", root);
+  const capacityGuideTip = $("capacityGuideTip", root);
+  const capacityGuideAssess = $("capacityGuideAssess", root);
+  const nodeCapacityLabel = $("nodeCapacityLabel", root);
+  const streamRateColumn = $("streamRateColumn", root);
   const streamTableBody = /** @type {HTMLTableSectionElement} */ (
     $("streamTableBody", root)
   );
@@ -54,18 +73,7 @@ export function mountThroughputCalculator(root) {
   const bandwidthPeak = $("bandwidthPeak", root);
   const nodesNeeded = $("nodesNeeded", root);
   const nodesNeededLabel = $("nodesNeededLabel", root);
-  const capacityMeta = $("capacityMeta", root);
-  const investigationChips = $("investigationChips", root);
-  const investigationMeta = $("investigationMeta", root);
-  const capacitySystemBlock = $("capacitySystemBlock", root);
-  const capacityProfileChips = $("capacityProfileChips", root);
-  const capacityGuide = $("capacityGuide", root);
-  const capacityGuideTitle = $("capacityGuideTitle", root);
-  const capacityGuideLimits = $("capacityGuideLimits", root);
-  const capacityGuideConnections = $("capacityGuideConnections", root);
-  const capacityGuideTip = $("capacityGuideTip", root);
-  const capacityGuideAssess = $("capacityGuideAssess", root);
-  const nodeCapacityLabel = $("nodeCapacityLabel", root);
+  const throughputFootnote = $("throughputFootnote", root);
   const payloadInput = /** @type {HTMLInputElement} */ ($("payloadBytes", root));
   const nodeCapacityInput = /** @type {HTMLInputElement} */ (
     $("nodeCapacityTps", root)
@@ -157,34 +165,6 @@ export function mountThroughputCalculator(root) {
     }
   });
 
-  for (const template of STREAM_TEMPLATES) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "chip";
-    btn.textContent = `+ ${template.name}`;
-    btn.title = `${template.actionsPerUserPerDay} actions/user/day`;
-    btn.addEventListener("click", () => {
-      state.streams.push({
-        id: nextStreamId(template.name.toLowerCase()),
-        name: template.name,
-        actionsPerUserPerDay: template.actionsPerUserPerDay
-      });
-      renderStreamEditor();
-      render();
-    });
-    streamTemplates.appendChild(btn);
-  }
-
-  addStreamBtn.addEventListener("click", () => {
-    state.streams.push({
-      id: nextStreamId("custom"),
-      name: "Custom",
-      actionsPerUserPerDay: 1
-    });
-    renderStreamEditor();
-    render();
-  });
-
   payloadInput.value = state.payloadBytes ? String(state.payloadBytes) : "";
   payloadInput.addEventListener("input", () => {
     state.payloadBytes = Math.max(0, Number(payloadInput.value) || 0);
@@ -198,6 +178,34 @@ export function mountThroughputCalculator(root) {
     state.nodeCapacityTps = Math.max(0, Number(nodeCapacityInput.value) || 0);
     render();
   });
+
+  addStreamBtn.addEventListener("click", () => {
+    const traffic = trafficConfigForFocus(state.investigationId);
+    if (!traffic) return;
+    if (traffic.mode === "rate") {
+      state.streams.push({
+        id: nextStreamId("custom"),
+        name: "Custom",
+        avgTps: 100
+      });
+    } else {
+      state.streams.push({
+        id: nextStreamId("custom"),
+        name: "Custom",
+        actionsPerUserPerDay: 1
+      });
+    }
+    renderStreamEditor();
+    render();
+  });
+
+  function applyFocusDefaults(focusId) {
+    const traffic = trafficConfigForFocus(focusId);
+    if (!traffic) return;
+    state.streams = traffic.defaultStreams.map((stream) => ({ ...stream }));
+    renderStreamTemplates();
+    renderStreamEditor();
+  }
 
   function renderInvestigationChips() {
     clear(investigationChips);
@@ -219,6 +227,7 @@ export function mountThroughputCalculator(root) {
             state.nodeCapacityTps = 0;
             nodeCapacityInput.value = "";
           }
+          applyFocusDefaults(focus.id);
         }
         renderInvestigationChips();
         renderProfileChips();
@@ -228,15 +237,45 @@ export function mountThroughputCalculator(root) {
     }
   }
 
-  function renderProfileChips() {
-    const focus = getInvestigationFocus(state.investigationId);
-    capacitySystemBlock.hidden = !focus;
-    setText(
-      investigationMeta,
-      focus?.hint ?? "Pick a focus to see relevant systems"
-    );
+  function renderStreamTemplates() {
+    clear(streamTemplates);
+    const traffic = trafficConfigForFocus(state.investigationId);
+    if (!traffic) return;
 
+    for (const template of traffic.templates) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "chip";
+      btn.textContent = `+ ${template.name}`;
+      if (traffic.mode === "rate") {
+        btn.title = `${formatTps(template.avgTps ?? 0)} ${traffic.rateSuffix}`;
+      } else {
+        btn.title = `${template.actionsPerUserPerDay} ${traffic.rateSuffix}`;
+      }
+      btn.addEventListener("click", () => {
+        if (traffic.mode === "rate") {
+          state.streams.push({
+            id: nextStreamId(template.name.toLowerCase()),
+            name: template.name,
+            avgTps: template.avgTps ?? 0
+          });
+        } else {
+          state.streams.push({
+            id: nextStreamId(template.name.toLowerCase()),
+            name: template.name,
+            actionsPerUserPerDay: template.actionsPerUserPerDay ?? 0
+          });
+        }
+        renderStreamEditor();
+        render();
+      });
+      streamTemplates.appendChild(btn);
+    }
+  }
+
+  function renderProfileChips() {
     clear(capacityProfileChips);
+    const focus = getInvestigationFocus(state.investigationId);
     if (!focus) return;
 
     for (const profile of profilesForInvestigation(focus.id)) {
@@ -295,7 +334,11 @@ export function mountThroughputCalculator(root) {
 
   function renderStreamEditor() {
     clear(streamList);
+    const traffic = trafficConfigForFocus(state.investigationId);
+    if (!traffic) return;
+
     const fragment = document.createDocumentFragment();
+    const rateMode = traffic.mode === "rate";
 
     state.streams.forEach((stream, index) => {
       const row = document.createElement("div");
@@ -311,27 +354,30 @@ export function mountThroughputCalculator(root) {
         render();
       });
 
-      const actionsWrap = document.createElement("label");
-      actionsWrap.className = "stream-actions";
-      const actionsInput = document.createElement("input");
-      actionsInput.type = "number";
-      actionsInput.min = "0";
-      actionsInput.step = "any";
-      actionsInput.value = String(stream.actionsPerUserPerDay);
-      actionsInput.setAttribute(
-        "aria-label",
-        `${stream.name} actions per user per day`
+      const rateWrap = document.createElement("label");
+      rateWrap.className = "stream-actions";
+      const rateInput = document.createElement("input");
+      rateInput.type = "number";
+      rateInput.min = "0";
+      rateInput.step = "any";
+      rateInput.value = String(
+        rateMode ? (stream.avgTps ?? 0) : (stream.actionsPerUserPerDay ?? 0)
       );
-      actionsInput.addEventListener("input", () => {
-        stream.actionsPerUserPerDay = Math.max(
-          0,
-          Number(actionsInput.value) || 0
-        );
+      rateInput.setAttribute(
+        "aria-label",
+        rateMode
+          ? `${stream.name} ${traffic.rateSuffix}`
+          : `${stream.name} actions per user per day`
+      );
+      rateInput.addEventListener("input", () => {
+        const value = Math.max(0, Number(rateInput.value) || 0);
+        if (rateMode) stream.avgTps = value;
+        else stream.actionsPerUserPerDay = value;
         render();
       });
-      const actionsCaption = document.createElement("span");
-      actionsCaption.textContent = "/user/day";
-      actionsWrap.append(actionsInput, actionsCaption);
+      const rateCaption = document.createElement("span");
+      rateCaption.textContent = traffic.rateSuffix;
+      rateWrap.append(rateInput, rateCaption);
 
       const removeBtn = document.createElement("button");
       removeBtn.type = "button";
@@ -345,7 +391,7 @@ export function mountThroughputCalculator(root) {
         render();
       });
 
-      row.append(nameInput, actionsWrap, removeBtn);
+      row.append(nameInput, rateWrap, removeBtn);
       fragment.appendChild(row);
     });
 
@@ -354,10 +400,12 @@ export function mountThroughputCalculator(root) {
 
   /**
    * @param {ReturnType<typeof estimateThroughput>} estimate
+   * @param {ReturnType<typeof trafficConfigForFocus>} traffic
    */
-  function renderStreamTable(estimate) {
+  function renderStreamTable(estimate, traffic) {
     clear(streamTableBody);
     const fragment = document.createDocumentFragment();
+    const rateMode = traffic?.mode === "rate";
 
     for (const row of estimate.streams) {
       const tr = document.createElement("tr");
@@ -366,8 +414,10 @@ export function mountThroughputCalculator(root) {
       name.scope = "row";
       name.textContent = row.name;
 
-      const actions = document.createElement("td");
-      actions.textContent = String(row.actionsPerUserPerDay);
+      const rate = document.createElement("td");
+      rate.textContent = rateMode
+        ? formatTps(row.avgTps)
+        : String(row.actionsPerUserPerDay);
 
       const avg = document.createElement("td");
       avg.textContent = formatTps(row.avgTps);
@@ -378,7 +428,7 @@ export function mountThroughputCalculator(root) {
       const share = document.createElement("td");
       share.textContent = `${Math.round(row.shareOfPeak * 100)}%`;
 
-      tr.append(name, actions, avg, peak, share);
+      tr.append(name, rate, avg, peak, share);
       fragment.appendChild(tr);
     }
 
@@ -387,43 +437,76 @@ export function mountThroughputCalculator(root) {
     const totalLabel = document.createElement("th");
     totalLabel.scope = "row";
     totalLabel.textContent = "Total";
-    const totalActions = document.createElement("td");
-    totalActions.textContent = String(estimate.totalActionsPerUserPerDay);
+    const totalRate = document.createElement("td");
+    totalRate.textContent = rateMode
+      ? estimate.totalAvgTpsLabel
+      : String(estimate.totalActionsPerUserPerDay);
     const totalAvg = document.createElement("td");
     totalAvg.textContent = estimate.totalAvgTpsLabel;
     const totalPeak = document.createElement("td");
     totalPeak.textContent = estimate.totalPeakTpsLabel;
     const totalShare = document.createElement("td");
     totalShare.textContent = estimate.streams.length ? "100%" : "—";
-    total.append(totalLabel, totalActions, totalAvg, totalPeak, totalShare);
+    total.append(totalLabel, totalRate, totalAvg, totalPeak, totalShare);
     fragment.appendChild(total);
 
     streamTableBody.appendChild(fragment);
   }
 
   function render() {
+    const traffic = trafficConfigForFocus(state.investigationId);
+    const focus = getInvestigationFocus(state.investigationId);
+    const hasFocus = Boolean(focus && traffic);
+
+    trafficBlock.hidden = !hasFocus;
+    capacityBlock.hidden = !hasFocus;
+    audienceBlock.hidden = !(hasFocus && traffic?.mode === "audience");
+
+    setText(investigationMeta, focus?.hint ?? "Pick a focus to continue");
+
+    if (traffic && focus) {
+      setText(streamsLabel, traffic.streamsTitle);
+      setText(streamsHelper, traffic.streamsHelper);
+      setText(streamRateColumn, traffic.rateColumn);
+      setText(capacityIntro, `Systems for ${focus.label}.`);
+      setText(
+        throughputFootnote,
+        traffic.mode === "audience"
+          ? "Avg TPS = daily users × actions/user/day ÷ 86,400. Peak = avg × peak multiplier. DAU/MAU is for app servers / load balancers. Runs in your browser."
+          : `Avg TPS comes from the ${traffic.rateSuffix} rates you enter. Peak = avg × peak multiplier. Use this for ${focus.label}, not end-user DAU. Runs in your browser.`
+      );
+    } else {
+      setText(
+        throughputFootnote,
+        "Pick an investigation to begin. App servers use DAU/MAU × actions/user/day. Databases, cache, and queues use direct rate inputs (RPS / ops/s / msg/s). Runs in your browser."
+      );
+    }
+
     const estimate = estimateThroughput({
+      trafficMode: traffic?.mode ?? "audience",
       audienceMode: state.audienceMode,
       audienceCount: state.audienceCount,
       peakMultiplier: state.peakMultiplier,
       payloadBytes: state.payloadBytes,
       nodeCapacityTps: state.nodeCapacityTps,
-      streams: state.streams
+      streams: hasFocus ? state.streams : []
     });
 
     setText(audienceMeta, estimate.audienceLabel);
+    setText(peakMeta, `Peak ${estimate.peakMultiplier}× over a flat average`);
+    setAnimatedText(totalAvgTps, hasFocus ? estimate.totalAvgTpsLabel : "0");
+    setAnimatedText(totalPeakTps, hasFocus ? estimate.totalPeakTpsLabel : "0");
     setText(
-      peakMeta,
-      `Peak ${estimate.peakMultiplier}× over a flat-day average`
+      throughputSummary,
+      hasFocus ? estimate.summaryLine : "Pick an investigation to estimate"
     );
-    setAnimatedText(totalAvgTps, estimate.totalAvgTpsLabel);
-    setAnimatedText(totalPeakTps, estimate.totalPeakTpsLabel);
-    setText(throughputSummary, estimate.summaryLine);
-    setText(bandwidthAvg, estimate.avgBandwidthLabel);
-    setText(bandwidthPeak, estimate.peakBandwidthLabel);
+    setText(bandwidthAvg, hasFocus ? estimate.avgBandwidthLabel : "—");
+    setText(bandwidthPeak, hasFocus ? estimate.peakBandwidthLabel : "—");
     setText(
       nodesNeeded,
-      estimate.nodesNeeded == null ? "—" : formatGrouped(estimate.nodesNeeded)
+      !hasFocus || estimate.nodesNeeded == null
+        ? "—"
+        : formatGrouped(estimate.nodesNeeded)
     );
 
     const profile = getCapacityProfile(state.capacityProfileId);
@@ -438,12 +521,12 @@ export function mountThroughputCalculator(root) {
       capacityMeta,
       estimate.nodeCapacityTps > 0
         ? `At ${formatTps(estimate.nodeCapacityTps)} TPS/${unit} for peak load`
-        : state.investigationId
+        : hasFocus
           ? "Pick a system or enter TPS/unit to size this layer"
           : "Pick an investigation focus first"
     );
     renderCapacityGuide();
-    renderStreamTable(estimate);
+    renderStreamTable(estimate, traffic);
   }
 
   function capitalize(value) {
@@ -453,6 +536,7 @@ export function mountThroughputCalculator(root) {
   syncModeButtons();
   renderInvestigationChips();
   renderProfileChips();
+  renderStreamTemplates();
   renderStreamEditor();
   render();
 

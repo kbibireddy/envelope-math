@@ -33,22 +33,22 @@ export const INVESTIGATION_FOCUSES = Object.freeze([
   Object.freeze({
     id: "app",
     label: "App servers",
-    hint: "How many instances for this request rate? Pick the runtime that matches your deploy."
+    hint: "Edge traffic via DAU/MAU — size app servers and load balancers."
   }),
   Object.freeze({
     id: "database",
     label: "Databases",
-    hint: "Can the primary store absorb peak TPS? Compare engines with similar access patterns."
+    hint: "Internal query/request RPS — not end-user DAU. Size the primary store."
   }),
   Object.freeze({
     id: "cache",
     label: "Cache",
-    hint: "Hot-path reads and sessions — usually orders of magnitude above the DB."
+    hint: "Cache ops/s on the hot path — usually far above database RPS."
   }),
   Object.freeze({
     id: "queue",
     label: "Queues & streams",
-    hint: "Ingest and fan-out capacity for async work and event pipelines."
+    hint: "Produce/consume message rates for async pipelines."
   })
 ]);
 

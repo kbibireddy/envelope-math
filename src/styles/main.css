@@ -809,13 +809,8 @@ input:focus {
 
 @media (max-width: 560px) {
   .footprint-head {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 12px;
-  }
-
-  .footprint-corner {
-    grid-column: 1 / -1;
-    justify-content: flex-end;
   }
 }
 

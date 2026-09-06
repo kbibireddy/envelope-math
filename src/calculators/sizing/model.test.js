@@ -74,6 +74,7 @@ describe("calculator registry", () => {
     expect(getCalculator("throughput")?.status).toBe("available");
     expect(getCalculator("throughput")?.mount).toEqual(expect.any(Function));
     expect(getCalculator("missing")).toBeNull();
-    expect(CALCULATORS.length).toBeGreaterThanOrEqual(3);
+    expect(getCalculator("cost")).toBeNull();
+    expect(CALCULATORS.map((c) => c.id)).toEqual(["sizing", "throughput"]);
   });
 });

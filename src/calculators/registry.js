@@ -28,12 +28,6 @@ export const CALCULATORS = Object.freeze([
     description:
       "From DAU/MAU and per-use-case actions, estimate average and peak TPS — plus bandwidth and nodes.",
     mount: mountThroughputCalculator
-  }),
-  Object.freeze({
-    id: "cost",
-    label: "Cost envelope",
-    status: "planned",
-    description: "Rough storage and transfer cost envelopes from growth projections."
   })
 ]);
 

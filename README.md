@@ -10,7 +10,6 @@ Interactive back-of-the-envelope calculators for storage sizing and capacity pla
 | --- | --- |
 | **Sizing estimation** | Available |
 | **Throughput** | Available |
-| Cost envelope | Planned |
 
 ### Sizing estimation
 
@@ -23,7 +22,7 @@ Interactive back-of-the-envelope calculators for storage sizing and capacity pla
 
 ### Throughput
 
-- Start from DAU or MAU (MAU ÷ active days → daily users)
+- Start from DAU or MAU (MAU ÷ 30 → daily users)
 - Add traffic streams (read / write / search / …) with actions per user per day
 - Apply a peak multiplier for busy periods
 - See average and peak TPS per stream and in total

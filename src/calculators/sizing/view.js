@@ -7,9 +7,7 @@ import {
   formatGrouped
 } from "../../ui/presets.js";
 import {
-  bindInfoPopover,
   renderProjectionTable,
-  renderSizePopover,
   renderUnitTable
 } from "../../ui/results.js";
 import {
@@ -100,7 +98,6 @@ export function mountSizingCalculator(root) {
   const unitTableBody = /** @type {HTMLTableSectionElement} */ (
     $("unitTableBody", root)
   );
-  const ladderPopoverBody = $("ladderPopoverBody", root);
   const projectionHelper = $("projectionHelper", root);
   const projectionBody = /** @type {HTMLTableSectionElement} */ (
     $("projectionBody", root)
@@ -114,11 +111,6 @@ export function mountSizingCalculator(root) {
 
   /** @type {Map<string, HTMLButtonElement>} */
   const compressionButtons = new Map();
-
-  bindInfoPopover(
-    /** @type {HTMLButtonElement} */ ($("ladderInfoBtn", root)),
-    $("ladderPopover", root)
-  );
 
   const multiplierChips = createPresetChips({
     container: $("multiplierChips", root),
@@ -290,13 +282,6 @@ export function mountSizingCalculator(root) {
         estimate.perRecordPrimary.key,
         estimate.totalPrimary.key
       )
-    );
-    renderSizePopover(
-      ladderPopoverBody,
-      estimate.totalDetails,
-      estimate.compressionId
-        ? `Total after ${estimate.compressionLabel.split(" · ")[0]} · 2 decimal places max`
-        : "Total · all units · 2 decimal places max"
     );
 
     setText(

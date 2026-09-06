@@ -392,7 +392,7 @@ export function mountThroughputCalculator(root) {
       btn.type = "button";
       btn.className = "chip";
       btn.textContent = profile.label;
-      btn.title = `${formatTps(profile.conservativeTps)}–${formatTps(profile.optimisticTps)} TPS/${profile.unitLabel}`;
+      btn.title = `${formatTps(profile.conservativeTps)}–${formatTps(profile.optimisticTps)} RPS/${profile.unitLabel}`;
       btn.classList.toggle("active", state.capacityProfileId === profile.id);
       btn.addEventListener("click", () => {
         state.capacityProfileId = profile.id;
@@ -409,14 +409,14 @@ export function mountThroughputCalculator(root) {
     const profile = getCapacityProfile(state.capacityProfileId);
     if (!profile) {
       capacityGuide.hidden = true;
-      setText(nodeCapacityLabel, "TPS per unit");
+      setText(nodeCapacityLabel, "RPS per unit");
       return;
     }
 
     capacityGuide.hidden = false;
     setText(
       capacityGuideTitle,
-      `${profile.label} · ~${formatTps(profile.conservativeTps)}–${formatTps(profile.optimisticTps)} TPS/${profile.unitLabel}`
+      `${profile.label} · ~${formatTps(profile.conservativeTps)}–${formatTps(profile.optimisticTps)} RPS/${profile.unitLabel}`
     );
     setText(capacityGuideLimits, profile.limits);
     setText(
@@ -430,7 +430,7 @@ export function mountThroughputCalculator(root) {
     const assessment = assessCapacityInput(profile, state.nodeCapacityTps);
     setText(capacityGuideAssess, assessment.message);
     capacityGuideAssess.dataset.level = assessment.level;
-    setText(nodeCapacityLabel, `TPS per ${profile.unitLabel}`);
+    setText(nodeCapacityLabel, `RPS per ${profile.unitLabel}`);
   }
 
   function syncModeButtons() {
@@ -546,7 +546,7 @@ export function mountThroughputCalculator(root) {
    */
   function audienceConversionLabel(estimate) {
     if (estimate.trafficMode === "rate") return estimate.audienceLabel;
-    return `${estimate.audienceLabel} → ${estimate.totalAvgTpsLabel} avg · ${estimate.totalPeakTpsLabel} peak TPS`;
+    return `${estimate.audienceLabel} → ${estimate.totalAvgTpsLabel} avg · ${estimate.totalPeakTpsLabel} peak RPS`;
   }
 
   function renderStreamEditor() {
@@ -713,16 +713,16 @@ export function mountThroughputCalculator(root) {
       setText(
         footnoteTraffic,
         traffic.mode === "audience"
-          ? "DAU/MAU × actions/user/day ÷ 86,400 → avg TPS (app / LB)"
+          ? "DAU/MAU × actions/user/day ÷ 86,400 → avg RPS (app / LB)"
           : `${focus.label}: enter ${traffic.rateSuffix} directly (not end-user DAU)`
       );
-      setText(footnotePeak, "avg TPS × peak multiplier");
+      setText(footnotePeak, "avg RPS × peak multiplier");
     } else {
       setText(
         footnoteTraffic,
-        "App: DAU/MAU × actions/day. DB/cache/queue: RPS / ops/s / msg/s"
+        "App: DAU/MAU × actions/day. DB/cache/queue: enter avg RPS"
       );
-      setText(footnotePeak, "avg TPS × peak multiplier");
+      setText(footnotePeak, "avg RPS × peak multiplier");
     }
 
     const estimate = estimateThroughput({
@@ -772,9 +772,9 @@ export function mountThroughputCalculator(root) {
     setText(
       capacityMeta,
       estimate.nodeCapacityTps > 0
-        ? `At ${formatTps(estimate.nodeCapacityTps)} TPS/${unit} for peak load`
+        ? `At ${formatTps(estimate.nodeCapacityTps)} RPS/${unit} for peak load`
         : hasFocus
-          ? "Pick a system or enter TPS/unit to size this layer"
+          ? "Pick a system or enter RPS/unit to size this layer"
           : "Pick an investigation focus first"
     );
     renderCapacityGuide();

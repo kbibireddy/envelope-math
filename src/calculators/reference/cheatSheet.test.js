@@ -42,8 +42,8 @@ describe("cheat sheet reference data", () => {
   });
 
   it("has interview formulas and estimation tips", () => {
-    expect(COMMON_FORMULAS.some((row) => /QPS|TPS/.test(row.item))).toBe(true);
+    expect(COMMON_FORMULAS.some((row) => /RPS/.test(row.item))).toBe(true);
     expect(ESTIMATION_TIPS.some((row) => /Round/.test(row.tip))).toBe(true);
-    expect(WORKED_EXAMPLE.some((row) => row.step === "Peak QPS")).toBe(true);
+    expect(WORKED_EXAMPLE.some((row) => row.step === "Peak RPS")).toBe(true);
   });
 });

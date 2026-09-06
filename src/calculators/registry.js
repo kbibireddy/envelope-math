@@ -27,7 +27,7 @@ export const CALCULATORS = Object.freeze([
     label: "Throughput",
     status: "available",
     description:
-      "Pick a layer (app, database, cache, or queue). App servers use DAU/MAU; internal systems use RPS / ops / messages.",
+      "Pick a layer (app, database, cache, or queue). App servers use DAU/MAU; internal systems use avg RPS.",
     mount: mountThroughputCalculator
   }),
   Object.freeze({

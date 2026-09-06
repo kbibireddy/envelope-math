@@ -1,7 +1,7 @@
 /**
  * Throughput envelope math.
- * App-server investigations: DAU/MAU × actions/user/day → TPS.
- * Databases / cache / queues: direct average rate (RPS, ops/s, msg/s) → TPS.
+ * App-server investigations: DAU/MAU × actions/user/day → RPS.
+ * Databases / cache / queues: direct average rate → RPS.
  * Pure functions only (no DOM).
  */
 
@@ -106,7 +106,7 @@ export const TRAFFIC_BY_FOCUS = Object.freeze({
     audienceLabel: "Avg RPS",
     streamsTitle: "Query split (optional)",
     streamsHelper:
-      "Enter plain avg RPS/TPS above — not DAU/MAU. Optionally split read/write below.",
+      "Enter plain avg RPS above — not DAU/MAU. Optionally split read/write below.",
     rateColumn: "Avg RPS",
     rateSuffix: "RPS",
     rateLabel: "Avg RPS",
@@ -121,13 +121,13 @@ export const TRAFFIC_BY_FOCUS = Object.freeze({
   }),
   cache: Object.freeze({
     mode: /** @type {TrafficMode} */ ("rate"),
-    audienceLabel: "Avg TPS",
+    audienceLabel: "Avg RPS",
     streamsTitle: "Ops split (optional)",
     streamsHelper:
-      "Enter plain avg ops/s above — not DAU/MAU. Optionally split GET/SET below.",
-    rateColumn: "Avg ops/s",
-    rateSuffix: "ops/s",
-    rateLabel: "Avg ops/s",
+      "Enter plain avg RPS above — not DAU/MAU. Optionally split GET/SET below.",
+    rateColumn: "Avg RPS",
+    rateSuffix: "RPS",
+    rateLabel: "Avg RPS",
     templates: Object.freeze([
       Object.freeze({ name: "GET", avgTps: 20_000 }),
       Object.freeze({ name: "SET", avgTps: 2_000 }),
@@ -139,13 +139,13 @@ export const TRAFFIC_BY_FOCUS = Object.freeze({
   }),
   queue: Object.freeze({
     mode: /** @type {TrafficMode} */ ("rate"),
-    audienceLabel: "Avg TPS",
+    audienceLabel: "Avg RPS",
     streamsTitle: "Message split (optional)",
     streamsHelper:
-      "Enter plain avg msg/s above — not DAU/MAU. Optionally split produce/consume below.",
-    rateColumn: "Avg msg/s",
-    rateSuffix: "msg/s",
-    rateLabel: "Avg msg/s",
+      "Enter plain avg RPS above — not DAU/MAU. Optionally split produce/consume below.",
+    rateColumn: "Avg RPS",
+    rateSuffix: "RPS",
+    rateLabel: "Avg RPS",
     templates: Object.freeze([
       Object.freeze({ name: "Produce", avgTps: 3_000 }),
       Object.freeze({ name: "Consume", avgTps: 3_000 }),
@@ -199,7 +199,7 @@ export function dailyActiveUsers({
 }
 
 /**
- * Format a TPS value for display (compact, readable).
+ * Format an RPS value for display (compact, readable).
  * @param {number} tps
  */
 export function formatTps(tps) {
@@ -348,7 +348,7 @@ export function estimateThroughput({
 
   const summaryLine =
     mode === "rate"
-      ? `${formatTps(totalAvgTps)} avg TPS · peak ${peak}×`
+      ? `${formatTps(totalAvgTps)} avg RPS · peak ${peak}×`
       : `${audienceLabel} · ${totalActionsPerUserPerDay} actions/user/day · peak ${peak}×`;
 
   return {
@@ -407,7 +407,7 @@ export function createLayerSnapshot({
 
   const parts = [
     `${estimate.totalAvgTpsLabel} avg`,
-    `${estimate.totalPeakTpsLabel} peak TPS`
+    `${estimate.totalPeakTpsLabel} peak RPS`
   ];
   if (nodesLabel) parts.push(nodesLabel);
 

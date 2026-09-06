@@ -90,12 +90,12 @@ export const AVAILABILITY_NUMBERS = Object.freeze([
 /** @type {ReadonlyArray<{ item: string, formula: string }>} */
 export const COMMON_FORMULAS = Object.freeze([
   Object.freeze({
-    item: "Avg QPS / TPS",
+    item: "Avg RPS",
     formula: "daily_actions ÷ 86,400"
   }),
   Object.freeze({
-    item: "Peak QPS",
-    formula: "avg_QPS × peak_multiplier (often 2×–5×)"
+    item: "Peak RPS",
+    formula: "avg_RPS × peak_multiplier (often 2×–5×)"
   }),
   Object.freeze({
     item: "DAU from MAU",
@@ -111,11 +111,11 @@ export const COMMON_FORMULAS = Object.freeze([
   }),
   Object.freeze({
     item: "Servers / tasks",
-    formula: "ceil(peak_QPS ÷ QPS_per_unit)"
+    formula: "ceil(peak_RPS ÷ RPS_per_unit)"
   }),
   Object.freeze({
     item: "Bandwidth",
-    formula: "QPS × payload_bytes"
+    formula: "RPS × payload_bytes"
   }),
   Object.freeze({
     item: "Seconds per day / year",
@@ -135,11 +135,11 @@ export const ESTIMATION_TIPS = Object.freeze([
   }),
   Object.freeze({
     tip: "Label every unit",
-    why: "“5” is ambiguous; “5 MB” or “5k QPS” removes confusion."
+    why: "“5” is ambiguous; “5 MB” or “5k RPS” removes confusion."
   }),
   Object.freeze({
     tip: "Practice the usual asks",
-    why: "QPS, peak QPS, storage, cache size, #servers — same toolkit each time."
+    why: "RPS, peak RPS, storage, cache size, #servers — same toolkit each time."
   }),
   Object.freeze({
     tip: "Process > exact answer",
@@ -158,11 +158,11 @@ export const WORKED_EXAMPLE = Object.freeze([
     example: "300M × 50% = 150M"
   }),
   Object.freeze({
-    step: "Avg tweet QPS",
+    step: "Avg tweet RPS",
     example: "150M × 2 / 86,400 ≈ 3.5k"
   }),
   Object.freeze({
-    step: "Peak QPS",
+    step: "Peak RPS",
     example: "≈ 2 × avg ≈ 7k"
   }),
   Object.freeze({

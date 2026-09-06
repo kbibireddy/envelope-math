@@ -235,7 +235,7 @@
               <input id="payloadBytes" type="number" min="0" step="1" placeholder="e.g. 2048">
             </label>
             <label class="field-stack">
-              <span class="field-label" for="nodeCapacityTps" id="nodeCapacityLabel">TPS per unit</span>
+              <span class="field-label" for="nodeCapacityTps" id="nodeCapacityLabel">RPS per unit</span>
               <input id="nodeCapacityTps" type="number" min="0" step="1" placeholder="pick a system or enter">
             </label>
           </div>
@@ -258,7 +258,7 @@
                   <td id="capacityGuideTip"></td>
                 </tr>
                 <tr>
-                  <th scope="row">Your TPS/unit</th>
+                  <th scope="row">Your RPS/unit</th>
                   <td class="capacity-guide-assess" id="capacityGuideAssess"></td>
                 </tr>
               </tbody>
@@ -281,31 +281,31 @@
         <div class="footprint-panel section compact">
           <div class="footprint-head">
             <div class="footprint-summary">
-              <p class="compare-label">Avg TPS</p>
+              <p class="compare-label">Avg RPS</p>
               <p class="compare-value">
                 <span class="num" id="totalAvgTps">0</span>
-                <span class="unit">TPS</span>
+                <span class="unit">RPS</span>
               </p>
               <p class="compare-sub">Flat average across streams</p>
             </div>
             <div class="footprint-summary footprint-summary-accent">
-              <p class="compare-label">Peak TPS</p>
+              <p class="compare-label">Peak RPS</p>
               <p class="compare-value">
                 <span class="num" id="totalPeakTps">0</span>
-                <span class="unit">TPS</span>
+                <span class="unit">RPS</span>
               </p>
               <p class="compare-sub" id="throughputSummary">—</p>
             </div>
           </div>
 
           <table class="footprint-table stream-table">
-            <caption class="sr-only">Per-stream average and peak TPS</caption>
+            <caption class="sr-only">Per-stream average and peak RPS</caption>
             <thead>
               <tr>
                 <th scope="col">Stream</th>
                 <th scope="col" id="streamRateColumn">Actions/user/day</th>
-                <th scope="col">Avg TPS</th>
-                <th scope="col">Peak TPS</th>
+                <th scope="col">Avg RPS</th>
+                <th scope="col">Peak RPS</th>
                 <th scope="col">Share</th>
               </tr>
             </thead>
@@ -334,7 +334,7 @@
           <caption class="sr-only">Throughput calculator notes</caption>
           <tbody>
             <tr><th scope="row">Traffic math</th><td id="footnoteTraffic">Pick a layer to begin</td></tr>
-            <tr><th scope="row">Peak</th><td id="footnotePeak">avg TPS × peak multiplier</td></tr>
+            <tr><th scope="row">Peak</th><td id="footnotePeak">avg RPS × peak multiplier</td></tr>
             <tr><th scope="row">Privacy</th><td>Runs in-browser — nothing uploaded</td></tr>
           </tbody>
         </table>

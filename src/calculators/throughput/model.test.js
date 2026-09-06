@@ -39,14 +39,14 @@ describe("trafficConfigForFocus", () => {
   it("uses rate units for internal systems", () => {
     expect(trafficConfigForFocus("database")?.mode).toBe("rate");
     expect(trafficConfigForFocus("database")?.rateSuffix).toBe("RPS");
-    expect(trafficConfigForFocus("cache")?.rateSuffix).toBe("ops/s");
-    expect(trafficConfigForFocus("queue")?.rateSuffix).toBe("msg/s");
+    expect(trafficConfigForFocus("cache")?.rateSuffix).toBe("RPS");
+    expect(trafficConfigForFocus("queue")?.rateSuffix).toBe("RPS");
     expect(trafficConfigForFocus(null)).toBeNull();
   });
 });
 
 describe("estimateThroughput", () => {
-  it("computes avg and peak TPS from DAU × actions/user/day", () => {
+  it("computes avg and peak RPS from DAU × actions/user/day", () => {
     const result = estimateThroughput({
       trafficMode: "audience",
       audienceMode: "dau",
@@ -66,7 +66,7 @@ describe("estimateThroughput", () => {
     expect(result.streams[0].shareOfPeak).toBeCloseTo(200 / 220);
   });
 
-  it("computes TPS directly from rate streams for internal systems", () => {
+  it("computes RPS directly from rate streams for internal systems", () => {
     const result = estimateThroughput({
       trafficMode: "rate",
       peakMultiplier: 3,
@@ -150,7 +150,7 @@ describe("layer snapshots", () => {
 });
 
 describe("format helpers", () => {
-  it("formats TPS and bandwidth compactly", () => {
+  it("formats RPS and bandwidth compactly", () => {
     expect(formatTps(0)).toBe("0");
     expect(formatTps(12.34)).toMatch(/12/);
     expect(formatTps(12_500)).toMatch(/K/);

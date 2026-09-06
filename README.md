@@ -28,7 +28,7 @@ Interactive back-of-the-envelope calculators for storage sizing and capacity pla
 | --- | --- |
 | Scope | One layer at a time: app servers, databases, cache, or queues |
 | App servers | DAU/MAU + actions/user/day (edge / load-balancer traffic) |
-| Internal systems | Direct rate inputs (RPS, ops/s, or msg/s) |
+| Internal systems | Direct average RPS |
 | Peak | Avg × peak multiplier |
 | Capacity | Match envelopes; optional payload → bandwidth and units @ peak |
 
@@ -41,9 +41,9 @@ Interview reference tables verified against [ByteByteGo back-of-the-envelope est
 | Power of two | KB → PB mental math |
 | Latency | Classic Dean / High Scalability operation times |
 | Availability | Downtime for 2–6 nines |
-| Formulas | QPS, storage, servers, bandwidth |
+| Formulas | RPS, storage, servers, bandwidth |
 | Tips | Round, label units, write assumptions |
-| Worked example | Twitter-style QPS + media storage |
+| Worked example | Twitter-style RPS + media storage |
 
 Everything runs in the browser. No payload text is uploaded or stored.
 
@@ -56,7 +56,7 @@ src/
   calculators/
     registry.js    # product catalog + mount hooks
     sizing/        # storage footprint (model + view)
-    throughput/    # investigation-scoped traffic → avg/peak TPS (model + view)
+    throughput/    # investigation-scoped traffic → avg/peak RPS (model + view)
     reference/     # ByteByteGo-aligned cheat sheet tables
   app.js           # shell: nav + host; swaps calculators without reloads
   styles/main.css

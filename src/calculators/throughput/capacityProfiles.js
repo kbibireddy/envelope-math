@@ -90,7 +90,7 @@ export const CAPACITY_PROFILES = Object.freeze([
     connections:
       "Often ~10k–100k concurrent sockets/node depending on memory and fan-out.",
     limits:
-      "Separate connection count from message TPS. Fan-out multiplies outbound bandwidth.",
+      "Separate connection count from message RPS. Fan-out multiplies outbound bandwidth.",
     tip: "Size memory/connections first, then message rate and bandwidth."
   }),
   Object.freeze({
@@ -103,7 +103,7 @@ export const CAPACITY_PROFILES = Object.freeze([
     connections:
       "Default max_connections ≈ 100; practical 200–500 with pooling. Active backends ≈ (cores×2)+1.",
     limits:
-      "Simple indexed reads 10k–50k QPS; mixed writes often 5k–10k TPS before you feel pain.",
+      "Simple indexed reads 10k–50k RPS; mixed writes often 5k–10k RPS before you feel pain.",
     tip: "Use PgBouncer/RDS Proxy. Scale reads with replicas; shard when writes or storage dominate."
   }),
   Object.freeze({
@@ -140,7 +140,7 @@ export const CAPACITY_PROFILES = Object.freeze([
     optimisticTps: 500_000,
     connections:
       "Tens of thousands of clients possible; watch CPU (mostly single-threaded commands).",
-    limits: "Simple GET/SET 100k–500k ops/s per instance; pipelines go higher.",
+    limits: "Simple GET/SET 100k–500k RPS per instance; pipelines go higher.",
     tip: "Usually not the first bottleneck. Shard/cluster when memory or CPU saturates."
   }),
   Object.freeze({
@@ -153,7 +153,7 @@ export const CAPACITY_PROFILES = Object.freeze([
     connections: "Producer/consumer connections are cheap vs byte throughput.",
     limits:
       "Think MB/s first: brokers often hundreds of MB/s; a single partition is often ~5–15 MB/s ingress class.",
-    tip: "Convert: TPS ≈ MB/s ÷ message_KB. Size partitions for peak bytes, not only record count."
+    tip: "Convert: RPS ≈ MB/s ÷ message_KB. Size partitions for peak bytes, not only record count."
   }),
   Object.freeze({
     id: "kinesis",
@@ -214,7 +214,7 @@ export function profilesForInvestigation(investigationId) {
 }
 
 /**
- * Compare a user-entered TPS/unit against a profile's plausible band.
+ * Compare a user-entered RPS/unit against a profile's plausible band.
  * @param {CapacityProfile} profile
  * @param {number} tps
  */
@@ -223,7 +223,7 @@ export function assessCapacityInput(profile, tps) {
   if (!Number.isFinite(value) || value <= 0) {
     return {
       level: /** @type {'empty'} */ ("empty"),
-      message: `Pick ${profile.label} or enter TPS/${profile.unitLabel}.`
+      message: `Pick ${profile.label} or enter RPS/${profile.unitLabel}.`
     };
   }
 
@@ -245,12 +245,12 @@ export function assessCapacityInput(profile, tps) {
   if (value > profile.optimisticTps) {
     return {
       level: /** @type {'optimistic'} */ ("optimistic"),
-      message: `Optimistic for ${profile.label}. Best case is ~${formatNumber(profile.optimisticTps)} TPS/${profile.unitLabel}.`
+      message: `Optimistic for ${profile.label}. Best case is ~${formatNumber(profile.optimisticTps)} RPS/${profile.unitLabel}.`
     };
   }
   return {
     level: /** @type {'ok'} */ ("ok"),
-    message: `Within envelope for ${profile.label}: ~${formatNumber(profile.conservativeTps)}–${formatNumber(profile.optimisticTps)} TPS/${profile.unitLabel}.`
+    message: `Within envelope for ${profile.label}: ~${formatNumber(profile.conservativeTps)}–${formatNumber(profile.optimisticTps)} RPS/${profile.unitLabel}.`
   };
 }
 
@@ -258,7 +258,7 @@ export function assessCapacityInput(profile, tps) {
  * @param {CapacityProfile} profile
  */
 function formatRange(profile) {
-  return `~${formatNumber(profile.conservativeTps)}–${formatNumber(profile.optimisticTps)} TPS/${profile.unitLabel}`;
+  return `~${formatNumber(profile.conservativeTps)}–${formatNumber(profile.optimisticTps)} RPS/${profile.unitLabel}`;
 }
 
 /** @param {number} value */

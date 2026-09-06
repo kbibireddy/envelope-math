@@ -185,30 +185,45 @@
         <div class="section compact">
           <h3>Capacity check</h3>
           <p class="helper">
-            Modern-system envelopes for TPS / connections. Pick a system to
-            auto-fill a conservative unit capacity, then override if you have
-            benchmarks.
+            What are you investigating right now? Options stay scoped to that
+            layer so you are not sizing Postgres while looking at app servers.
           </p>
-          <div class="chips" id="capacityCategoryChips" role="group" aria-label="System category"></div>
-          <div class="chips capacity-profile-chips" id="capacityProfileChips" role="group" aria-label="System profile"></div>
+          <span class="field-label" id="investigationLabel">Investigation</span>
+          <div
+            class="chips"
+            id="investigationChips"
+            role="group"
+            aria-labelledby="investigationLabel"
+          ></div>
+          <p class="helper" id="investigationMeta">Pick a focus to see relevant systems</p>
 
-          <div class="capacity-grid">
-            <label class="field-stack">
-              <span class="field-label" for="payloadBytes">Payload bytes / request</span>
-              <input id="payloadBytes" type="number" min="0" step="1" placeholder="e.g. 2048">
-            </label>
-            <label class="field-stack">
-              <span class="field-label" for="nodeCapacityTps" id="nodeCapacityLabel">TPS per unit</span>
-              <input id="nodeCapacityTps" type="number" min="0" step="1" placeholder="pick a system or enter">
-            </label>
-          </div>
-          <p class="helper" id="capacityMeta">Pick a system to size the fleet</p>
-          <div class="capacity-guide" id="capacityGuide" hidden>
-            <p class="capacity-guide-title" id="capacityGuideTitle"></p>
-            <p class="capacity-guide-limits" id="capacityGuideLimits"></p>
-            <p class="capacity-guide-connections" id="capacityGuideConnections"></p>
-            <p class="capacity-guide-tip" id="capacityGuideTip"></p>
-            <p class="capacity-guide-assess" id="capacityGuideAssess"></p>
+          <div id="capacitySystemBlock" hidden>
+            <span class="field-label" id="capacitySystemLabel">System</span>
+            <div
+              class="chips capacity-profile-chips"
+              id="capacityProfileChips"
+              role="group"
+              aria-labelledby="capacitySystemLabel"
+            ></div>
+
+            <div class="capacity-grid">
+              <label class="field-stack">
+                <span class="field-label" for="payloadBytes">Payload bytes / request</span>
+                <input id="payloadBytes" type="number" min="0" step="1" placeholder="e.g. 2048">
+              </label>
+              <label class="field-stack">
+                <span class="field-label" for="nodeCapacityTps" id="nodeCapacityLabel">TPS per unit</span>
+                <input id="nodeCapacityTps" type="number" min="0" step="1" placeholder="pick a system or enter">
+              </label>
+            </div>
+            <p class="helper" id="capacityMeta">Pick a system to size this layer</p>
+            <div class="capacity-guide" id="capacityGuide" hidden>
+              <p class="capacity-guide-title" id="capacityGuideTitle"></p>
+              <p class="capacity-guide-limits" id="capacityGuideLimits"></p>
+              <p class="capacity-guide-connections" id="capacityGuideConnections"></p>
+              <p class="capacity-guide-tip" id="capacityGuideTip"></p>
+              <p class="capacity-guide-assess" id="capacityGuideAssess"></p>
+            </div>
           </div>
         </div>
       </section>
@@ -271,9 +286,10 @@
 
         <p class="footnote">
           Avg TPS = daily users × actions/user/day ÷ 86,400.
-          Peak TPS = avg × peak multiplier. Capacity chips are modern-system
-          envelopes (Postgres, DynamoDB, Kafka, Lambda, …) — conservative
-          defaults for planning, not load-test results. Runs in your browser.
+          Peak TPS = avg × peak multiplier. Pick one investigation at a time
+          (app servers, databases, cache, or queues) — capacity chips are
+          scoped to that layer with modern-system envelopes, not load-test
+          results. Runs in your browser.
         </p>
       </section>
     </div>

@@ -1,30 +1,42 @@
 import { describe, expect, it } from "vitest";
 import {
-  CAPACITY_PROFILES,
+  INVESTIGATION_FOCUSES,
   assessCapacityInput,
   getCapacityProfile,
-  profilesForCategory
+  getInvestigationFocus,
+  profilesForInvestigation
 } from "./capacityProfiles.js";
 
-describe("capacityProfiles", () => {
-  it("covers the core systems users ask about", () => {
-    const ids = CAPACITY_PROFILES.map((profile) => profile.id);
-    for (const id of [
-      "postgres",
-      "dynamodb",
-      "cassandra",
-      "kafka",
-      "kinesis",
-      "sqs",
-      "ecs",
-      "lambda"
-    ]) {
-      expect(ids).toContain(id);
-    }
+describe("investigation focuses", () => {
+  it("lists focused investigations instead of dumping every system", () => {
+    const ids = INVESTIGATION_FOCUSES.map((focus) => focus.id);
+    expect(ids).toEqual(["app", "database", "cache", "queue"]);
   });
 
-  it("returns profiles by category and id", () => {
-    expect(profilesForCategory("database").length).toBeGreaterThanOrEqual(3);
+  it("returns only systems relevant to the selected investigation", () => {
+    expect(profilesForInvestigation("app").map((p) => p.id)).toEqual([
+      "ecs",
+      "lambda",
+      "websocket"
+    ]);
+    expect(profilesForInvestigation("database").map((p) => p.id)).toEqual([
+      "postgres",
+      "dynamodb",
+      "cassandra"
+    ]);
+    expect(profilesForInvestigation("cache").map((p) => p.id)).toEqual([
+      "redis"
+    ]);
+    expect(profilesForInvestigation("queue").map((p) => p.id)).toEqual([
+      "kafka",
+      "kinesis",
+      "sqs"
+    ]);
+    expect(profilesForInvestigation(null)).toEqual([]);
+  });
+
+  it("looks up focus and profile metadata", () => {
+    expect(getInvestigationFocus("database")?.hint).toMatch(/store/i);
     expect(getCapacityProfile("postgres")?.conservativeTps).toBe(5_000);
     expect(getCapacityProfile("missing")).toBeNull();
   });

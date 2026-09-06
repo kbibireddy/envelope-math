@@ -16,10 +16,11 @@ import {
   nextStreamId
 } from "./model.js";
 import {
-  CAPACITY_CATEGORIES,
+  INVESTIGATION_FOCUSES,
   assessCapacityInput,
   getCapacityProfile,
-  profilesForCategory
+  getInvestigationFocus,
+  profilesForInvestigation
 } from "./capacityProfiles.js";
 
 /**
@@ -34,9 +35,7 @@ export function mountThroughputCalculator(root) {
     peakMultiplier: THROUGHPUT_DEFAULTS.peakMultiplier,
     payloadBytes: THROUGHPUT_DEFAULTS.payloadBytes,
     nodeCapacityTps: THROUGHPUT_DEFAULTS.nodeCapacityTps,
-    capacityCategory: /** @type {'database' | 'cache' | 'queue' | 'compute'} */ (
-      "database"
-    ),
+    investigationId: /** @type {string | null} */ (null),
     capacityProfileId: /** @type {string | null} */ (null),
     customAudience: false,
     customPeak: false,
@@ -60,7 +59,9 @@ export function mountThroughputCalculator(root) {
   const nodesNeeded = $("nodesNeeded", root);
   const nodesNeededLabel = $("nodesNeededLabel", root);
   const capacityMeta = $("capacityMeta", root);
-  const capacityCategoryChips = $("capacityCategoryChips", root);
+  const investigationChips = $("investigationChips", root);
+  const investigationMeta = $("investigationMeta", root);
+  const capacitySystemBlock = $("capacitySystemBlock", root);
   const capacityProfileChips = $("capacityProfileChips", root);
   const capacityGuide = $("capacityGuide", root);
   const capacityGuideTitle = $("capacityGuideTitle", root);
@@ -238,26 +239,47 @@ export function mountThroughputCalculator(root) {
     render();
   });
 
-  function renderCategoryChips() {
-    clear(capacityCategoryChips);
-    for (const category of CAPACITY_CATEGORIES) {
+  function renderInvestigationChips() {
+    clear(investigationChips);
+    for (const focus of INVESTIGATION_FOCUSES) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "chip";
-      btn.textContent = category.label;
-      btn.classList.toggle("active", state.capacityCategory === category.id);
+      btn.textContent = focus.label;
+      btn.classList.toggle("active", state.investigationId === focus.id);
       btn.addEventListener("click", () => {
-        state.capacityCategory = category.id;
-        renderCategoryChips();
+        const switching = state.investigationId !== focus.id;
+        state.investigationId = focus.id;
+        if (switching) {
+          const stillValid = profilesForInvestigation(focus.id).some(
+            (profile) => profile.id === state.capacityProfileId
+          );
+          if (!stillValid) {
+            state.capacityProfileId = null;
+            state.nodeCapacityTps = 0;
+            nodeCapacityInput.value = "";
+          }
+        }
+        renderInvestigationChips();
         renderProfileChips();
+        render();
       });
-      capacityCategoryChips.appendChild(btn);
+      investigationChips.appendChild(btn);
     }
   }
 
   function renderProfileChips() {
+    const focus = getInvestigationFocus(state.investigationId);
+    capacitySystemBlock.hidden = !focus;
+    setText(
+      investigationMeta,
+      focus?.hint ?? "Pick a focus to see relevant systems"
+    );
+
     clear(capacityProfileChips);
-    for (const profile of profilesForCategory(state.capacityCategory)) {
+    if (!focus) return;
+
+    for (const profile of profilesForInvestigation(focus.id)) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "chip";
@@ -458,7 +480,9 @@ export function mountThroughputCalculator(root) {
       capacityMeta,
       estimate.nodeCapacityTps > 0
         ? `At ${formatTps(estimate.nodeCapacityTps)} TPS/${unit} for peak load`
-        : "Pick a system or enter TPS/unit to size the fleet"
+        : state.investigationId
+          ? "Pick a system or enter TPS/unit to size this layer"
+          : "Pick an investigation focus first"
     );
     renderCapacityGuide();
     renderStreamTable(estimate);
@@ -469,7 +493,7 @@ export function mountThroughputCalculator(root) {
   }
 
   syncModeButtons();
-  renderCategoryChips();
+  renderInvestigationChips();
   renderProfileChips();
   renderStreamEditor();
   render();

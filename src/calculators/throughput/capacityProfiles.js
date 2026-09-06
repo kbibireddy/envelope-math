@@ -1,13 +1,24 @@
 /**
- * Envelope capacity profiles for modern systems.
+ * Capacity envelopes scoped by investigation focus.
+ * Assess one layer at a time — app servers, databases, cache, or queues —
+ * so options stay relevant to what you are sizing right now.
+ *
  * Numbers are conservative back-of-envelope defaults for interviews / planning —
  * not load-test guarantees. Workload shape (payload, query complexity, hot keys)
  * can move these by 2–10×.
  *
+ * @typedef {'app' | 'database' | 'cache' | 'queue'} InvestigationId
+ *
+ * @typedef {{
+ *   id: InvestigationId,
+ *   label: string,
+ *   hint: string
+ * }} InvestigationFocus
+ *
  * @typedef {{
  *   id: string,
  *   label: string,
- *   category: 'database' | 'cache' | 'queue' | 'compute',
+ *   investigation: InvestigationId,
  *   unitLabel: string,
  *   conservativeTps: number,
  *   optimisticTps: number,
@@ -17,97 +28,36 @@
  * }} CapacityProfile
  */
 
+/** @type {ReadonlyArray<InvestigationFocus>} */
+export const INVESTIGATION_FOCUSES = Object.freeze([
+  Object.freeze({
+    id: "app",
+    label: "App servers",
+    hint: "How many instances for this request rate? Pick the runtime that matches your deploy."
+  }),
+  Object.freeze({
+    id: "database",
+    label: "Databases",
+    hint: "Can the primary store absorb peak TPS? Compare engines with similar access patterns."
+  }),
+  Object.freeze({
+    id: "cache",
+    label: "Cache",
+    hint: "Hot-path reads and sessions — usually orders of magnitude above the DB."
+  }),
+  Object.freeze({
+    id: "queue",
+    label: "Queues & streams",
+    hint: "Ingest and fan-out capacity for async work and event pipelines."
+  })
+]);
+
 /** @type {ReadonlyArray<CapacityProfile>} */
 export const CAPACITY_PROFILES = Object.freeze([
   Object.freeze({
-    id: "postgres",
-    label: "PostgreSQL",
-    category: "database",
-    unitLabel: "primary node",
-    conservativeTps: 5_000,
-    optimisticTps: 20_000,
-    connections:
-      "Default max_connections ≈ 100; practical 200–500 with pooling. Active backends ≈ (cores×2)+1.",
-    limits:
-      "Simple indexed reads 10k–50k QPS; mixed writes often 5k–10k TPS before you feel pain.",
-    tip: "Use PgBouncer/RDS Proxy. Scale reads with replicas; shard when writes or storage dominate."
-  }),
-  Object.freeze({
-    id: "dynamodb",
-    label: "DynamoDB",
-    category: "database",
-    unitLabel: "hot partition",
-    conservativeTps: 1_000,
-    optimisticTps: 3_000,
-    connections: "HTTP API — no TCP connection pool to size.",
-    limits:
-      "Hard ceiling ≈ 1k WCU + 3k RCU per partition (≈1 KB write / 4 KB read units). Hot keys throttle even if the table has spare capacity.",
-    tip: "Design partition keys for spread. On-demand helps aggregate load, not celebrity keys."
-  }),
-  Object.freeze({
-    id: "cassandra",
-    label: "Cassandra",
-    category: "database",
-    unitLabel: "node",
-    conservativeTps: 25_000,
-    optimisticTps: 100_000,
-    connections:
-      "Drivers multiplex; often ~1k–2k in-flight requests per connection.",
-    limits:
-      "Well-partitioned writes scale near-linear with nodes; reads are lower unless cached.",
-    tip: "Partition key design is the capacity plan. Avoid unbounded partitions."
-  }),
-  Object.freeze({
-    id: "redis",
-    label: "Redis",
-    category: "cache",
-    unitLabel: "instance",
-    conservativeTps: 100_000,
-    optimisticTps: 500_000,
-    connections: "Tens of thousands of clients possible; watch CPU (mostly single-threaded commands).",
-    limits: "Simple GET/SET 100k–500k ops/s per instance; pipelines go higher.",
-    tip: "Usually not the first bottleneck. Shard/cluster when memory or CPU saturates."
-  }),
-  Object.freeze({
-    id: "kafka",
-    label: "Kafka / MSK",
-    category: "queue",
-    unitLabel: "broker (small msgs)",
-    conservativeTps: 50_000,
-    optimisticTps: 200_000,
-    connections: "Producer/consumer connections are cheap vs byte throughput.",
-    limits:
-      "Think MB/s first: brokers often hundreds of MB/s; a single partition is often ~5–15 MB/s ingress class.",
-    tip: "Convert: TPS ≈ MB/s ÷ message_KB. Size partitions for peak bytes, not only record count."
-  }),
-  Object.freeze({
-    id: "kinesis",
-    label: "Kinesis Data Streams",
-    category: "queue",
-    unitLabel: "shard",
-    conservativeTps: 1_000,
-    optimisticTps: 1_000,
-    connections: "API quotas + shard limits; not a connection-pool problem.",
-    limits:
-      "Classic shard envelope: ~1 MB/s or ~1k records/s in, ~2 MB/s out (confirm current stream mode).",
-    tip: "shards ≈ ceil(peak_records_s / 1000) or ceil(peak_MB_s / 1)."
-  }),
-  Object.freeze({
-    id: "sqs",
-    label: "SQS",
-    category: "queue",
-    unitLabel: "worker concurrency unit",
-    conservativeTps: 3_000,
-    optimisticTps: 30_000,
-    connections: "HTTPS polling; scale consumers, not broker nodes.",
-    limits:
-      "Standard queues are very high aggregate; batch up to 10. FIFO is limited per message group.",
-    tip: "Throughput ≈ pollers × batch_size / cycle_time. FIFO: watch group-id hot spots."
-  }),
-  Object.freeze({
     id: "ecs",
     label: "ECS / app task",
-    category: "compute",
+    investigation: "app",
     unitLabel: "task / container",
     conservativeTps: 1_000,
     optimisticTps: 5_000,
@@ -120,7 +70,7 @@ export const CAPACITY_PROFILES = Object.freeze([
   Object.freeze({
     id: "lambda",
     label: "AWS Lambda",
-    category: "compute",
+    investigation: "app",
     unitLabel: "concurrent execution",
     conservativeTps: 1_000,
     optimisticTps: 10_000,
@@ -133,23 +83,102 @@ export const CAPACITY_PROFILES = Object.freeze([
   Object.freeze({
     id: "websocket",
     label: "WebSocket gateway",
-    category: "compute",
+    investigation: "app",
     unitLabel: "node",
     conservativeTps: 10_000,
     optimisticTps: 50_000,
-    connections: "Often ~10k–100k concurrent sockets/node depending on memory and fan-out.",
+    connections:
+      "Often ~10k–100k concurrent sockets/node depending on memory and fan-out.",
     limits:
       "Separate connection count from message TPS. Fan-out multiplies outbound bandwidth.",
     tip: "Size memory/connections first, then message rate and bandwidth."
+  }),
+  Object.freeze({
+    id: "postgres",
+    label: "PostgreSQL",
+    investigation: "database",
+    unitLabel: "primary node",
+    conservativeTps: 5_000,
+    optimisticTps: 20_000,
+    connections:
+      "Default max_connections ≈ 100; practical 200–500 with pooling. Active backends ≈ (cores×2)+1.",
+    limits:
+      "Simple indexed reads 10k–50k QPS; mixed writes often 5k–10k TPS before you feel pain.",
+    tip: "Use PgBouncer/RDS Proxy. Scale reads with replicas; shard when writes or storage dominate."
+  }),
+  Object.freeze({
+    id: "dynamodb",
+    label: "DynamoDB",
+    investigation: "database",
+    unitLabel: "hot partition",
+    conservativeTps: 1_000,
+    optimisticTps: 3_000,
+    connections: "HTTP API — no TCP connection pool to size.",
+    limits:
+      "Hard ceiling ≈ 1k WCU + 3k RCU per partition (≈1 KB write / 4 KB read units). Hot keys throttle even if the table has spare capacity.",
+    tip: "Design partition keys for spread. On-demand helps aggregate load, not celebrity keys."
+  }),
+  Object.freeze({
+    id: "cassandra",
+    label: "Cassandra",
+    investigation: "database",
+    unitLabel: "node",
+    conservativeTps: 25_000,
+    optimisticTps: 100_000,
+    connections:
+      "Drivers multiplex; often ~1k–2k in-flight requests per connection.",
+    limits:
+      "Well-partitioned writes scale near-linear with nodes; reads are lower unless cached.",
+    tip: "Partition key design is the capacity plan. Avoid unbounded partitions."
+  }),
+  Object.freeze({
+    id: "redis",
+    label: "Redis",
+    investigation: "cache",
+    unitLabel: "instance",
+    conservativeTps: 100_000,
+    optimisticTps: 500_000,
+    connections:
+      "Tens of thousands of clients possible; watch CPU (mostly single-threaded commands).",
+    limits: "Simple GET/SET 100k–500k ops/s per instance; pipelines go higher.",
+    tip: "Usually not the first bottleneck. Shard/cluster when memory or CPU saturates."
+  }),
+  Object.freeze({
+    id: "kafka",
+    label: "Kafka / MSK",
+    investigation: "queue",
+    unitLabel: "broker (small msgs)",
+    conservativeTps: 50_000,
+    optimisticTps: 200_000,
+    connections: "Producer/consumer connections are cheap vs byte throughput.",
+    limits:
+      "Think MB/s first: brokers often hundreds of MB/s; a single partition is often ~5–15 MB/s ingress class.",
+    tip: "Convert: TPS ≈ MB/s ÷ message_KB. Size partitions for peak bytes, not only record count."
+  }),
+  Object.freeze({
+    id: "kinesis",
+    label: "Kinesis Data Streams",
+    investigation: "queue",
+    unitLabel: "shard",
+    conservativeTps: 1_000,
+    optimisticTps: 1_000,
+    connections: "API quotas + shard limits; not a connection-pool problem.",
+    limits:
+      "Classic shard envelope: ~1 MB/s or ~1k records/s in, ~2 MB/s out (confirm current stream mode).",
+    tip: "shards ≈ ceil(peak_records_s / 1000) or ceil(peak_MB_s / 1)."
+  }),
+  Object.freeze({
+    id: "sqs",
+    label: "SQS",
+    investigation: "queue",
+    unitLabel: "worker concurrency unit",
+    conservativeTps: 3_000,
+    optimisticTps: 30_000,
+    connections: "HTTPS polling; scale consumers, not broker nodes.",
+    limits:
+      "Standard queues are very high aggregate; batch up to 10. FIFO is limited per message group.",
+    tip: "Throughput ≈ pollers × batch_size / cycle_time. FIFO: watch group-id hot spots."
   })
-]);
-
-/** @type {ReadonlyArray<{ id: CapacityProfile['category'], label: string }>} */
-export const CAPACITY_CATEGORIES = Object.freeze([
-  Object.freeze({ id: "database", label: "Databases" }),
-  Object.freeze({ id: "cache", label: "Cache" }),
-  Object.freeze({ id: "queue", label: "Queues / streams" }),
-  Object.freeze({ id: "compute", label: "Compute" })
 ]);
 
 /**
@@ -162,10 +191,26 @@ export function getCapacityProfile(id) {
 }
 
 /**
- * @param {CapacityProfile['category']} category
+ * @param {string | null | undefined} investigationId
+ * @returns {InvestigationFocus | null}
  */
-export function profilesForCategory(category) {
-  return CAPACITY_PROFILES.filter((profile) => profile.category === category);
+export function getInvestigationFocus(investigationId) {
+  if (!investigationId) return null;
+  return (
+    INVESTIGATION_FOCUSES.find((focus) => focus.id === investigationId) ?? null
+  );
+}
+
+/**
+ * Systems relevant to one investigation — not the full catalog.
+ * @param {string | null | undefined} investigationId
+ * @returns {CapacityProfile[]}
+ */
+export function profilesForInvestigation(investigationId) {
+  if (!investigationId) return [];
+  return CAPACITY_PROFILES.filter(
+    (profile) => profile.investigation === investigationId
+  );
 }
 
 /**

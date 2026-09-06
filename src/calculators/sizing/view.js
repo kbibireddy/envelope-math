@@ -219,7 +219,7 @@ export function mountSizingCalculator(root) {
 
     setText(
       projectionHelper,
-      `${estimate.growthPercent}% YoY · showing ${estimate.projections.length - 1} of ${MAX_PROJECTION_YEARS} years`
+      `${estimate.growthPercent}% YoY · showing ${estimate.projections.length - 1} of ${MAX_PROJECTION_YEARS} years · “× vs now” is size relative to today`
     );
     renderProjectionTable(projectionBody, estimate.projections);
 

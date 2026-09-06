@@ -678,23 +678,6 @@ input:focus {
 
 .projection tr:last-child td { border-bottom: 0; }
 
-.growth-bar {
-  display: block;
-  height: 5px;
-  margin-top: 6px;
-  border-radius: 999px;
-  background: #d5deea;
-  overflow: hidden;
-}
-
-.growth-bar > span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent-2), var(--signal));
-  transition: width 0.4s ease;
-}
-
 .footnote {
   margin-top: 16px;
   color: var(--muted);

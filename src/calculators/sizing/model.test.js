@@ -71,7 +71,8 @@ describe("calculator registry", () => {
   it("lists sizing as the default available product", () => {
     expect(getDefaultCalculator().id).toBe("sizing");
     expect(getCalculator("sizing")?.status).toBe("available");
-    expect(getCalculator("throughput")?.status).toBe("planned");
+    expect(getCalculator("throughput")?.status).toBe("available");
+    expect(getCalculator("throughput")?.mount).toEqual(expect.any(Function));
     expect(getCalculator("missing")).toBeNull();
     expect(CALCULATORS.length).toBeGreaterThanOrEqual(3);
   });

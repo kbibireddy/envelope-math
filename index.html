@@ -140,6 +140,129 @@
     </div>
   </template>
 
+  <template id="tpl-throughput">
+    <div class="layout">
+      <section class="panel controls" aria-labelledby="throughput-inputs-title">
+        <p class="eyebrow">Inputs</p>
+        <h2 id="throughput-inputs-title">Throughput estimation</h2>
+
+        <div class="section compact">
+          <div class="scale-stack">
+            <div class="scale-row">
+              <span class="field-label" id="audienceModeLabel">Audience</span>
+              <div class="chips" role="group" aria-labelledby="audienceModeLabel">
+                <button type="button" class="chip" data-audience-mode="dau" aria-pressed="false">DAU</button>
+                <button type="button" class="chip" data-audience-mode="mau" aria-pressed="false">MAU</button>
+              </div>
+              <div class="chips" id="audienceChips" role="group" aria-label="Audience size"></div>
+              <p class="helper" id="audienceMeta">1M DAU</p>
+            </div>
+
+            <div class="scale-row" id="mauOnly" hidden>
+              <span class="field-label" id="activeDaysLabel">Active days / month</span>
+              <div class="chips" id="activeDaysChips" role="group" aria-labelledby="activeDaysLabel"></div>
+              <p class="helper">Daily ≈ MAU ÷ active days</p>
+            </div>
+
+            <div class="scale-row">
+              <span class="field-label" id="peakLabel">Peak multiplier</span>
+              <div class="chips" id="peakChips" role="group" aria-labelledby="peakLabel"></div>
+              <p class="helper" id="peakMeta">Peak 3× over a flat-day average</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section compact">
+          <div class="section-head">
+            <h3 id="streamsLabel">Traffic streams</h3>
+            <button type="button" class="text-btn" id="addStreamBtn">+ Custom</button>
+          </div>
+          <p class="helper">Each stream is actions/user/day (read, write, search, …).</p>
+          <div class="chips stream-template-chips" id="streamTemplates" role="group" aria-label="Add stream template"></div>
+          <div class="stream-list" id="streamList"></div>
+        </div>
+
+        <div class="section compact">
+          <h3>Optional capacity</h3>
+          <div class="capacity-grid">
+            <label class="field-stack">
+              <span class="field-label" for="payloadBytes">Payload bytes / request</span>
+              <input id="payloadBytes" type="number" min="0" step="1" placeholder="e.g. 2048">
+            </label>
+            <label class="field-stack">
+              <span class="field-label" for="nodeCapacityTps">TPS per node</span>
+              <input id="nodeCapacityTps" type="number" min="0" step="1" placeholder="e.g. 5000">
+            </label>
+          </div>
+          <p class="helper" id="capacityMeta">Set TPS/node to size the fleet</p>
+        </div>
+      </section>
+
+      <section class="panel results" aria-labelledby="throughput-results-title" aria-live="polite">
+        <p class="eyebrow">Estimate</p>
+        <h2 id="throughput-results-title">Request throughput</h2>
+
+        <div class="footprint-panel section compact">
+          <div class="footprint-head">
+            <div class="footprint-summary">
+              <p class="compare-label">Avg TPS</p>
+              <p class="compare-value">
+                <span class="num" id="totalAvgTps">0</span>
+                <span class="unit">TPS</span>
+              </p>
+              <p class="compare-sub">Flat-day average across streams</p>
+            </div>
+            <div class="footprint-summary footprint-summary-accent">
+              <p class="compare-label">Peak TPS</p>
+              <p class="compare-value">
+                <span class="num" id="totalPeakTps">0</span>
+                <span class="unit">TPS</span>
+              </p>
+              <p class="compare-sub" id="throughputSummary">—</p>
+            </div>
+          </div>
+
+          <table class="footprint-table stream-table">
+            <caption class="sr-only">Per-stream average and peak TPS</caption>
+            <thead>
+              <tr>
+                <th scope="col">Stream</th>
+                <th scope="col">Actions/user/day</th>
+                <th scope="col">Avg TPS</th>
+                <th scope="col">Peak TPS</th>
+                <th scope="col">Share</th>
+              </tr>
+            </thead>
+            <tbody id="streamTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="section compact capacity-results">
+          <div class="capacity-stats">
+            <div>
+              <p class="compare-label">Avg bandwidth</p>
+              <p class="compare-value small"><span id="bandwidthAvg">—</span></p>
+            </div>
+            <div>
+              <p class="compare-label">Peak bandwidth</p>
+              <p class="compare-value small"><span id="bandwidthPeak">—</span></p>
+            </div>
+            <div>
+              <p class="compare-label">Nodes @ peak</p>
+              <p class="compare-value small"><span id="nodesNeeded">—</span></p>
+            </div>
+          </div>
+        </div>
+
+        <p class="footnote">
+          Avg TPS = daily users × actions/user/day ÷ 86,400.
+          Peak TPS = avg × peak multiplier. MAU converts with ÷ active days.
+          Bandwidth uses payload bytes × TPS. Runs in your browser — nothing is uploaded.
+        </p>
+      </section>
+    </div>
+  </template>
+
   <script type="module" src="/src/app.js"></script>
 </body>
 </html>

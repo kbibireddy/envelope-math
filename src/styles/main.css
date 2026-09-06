@@ -799,6 +799,143 @@ input:focus {
   font-size: 0.78rem;
 }
 
+/* Throughput calculator */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.section-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.text-btn {
+  border: 0;
+  padding: 4px 8px;
+  color: var(--accent);
+  background: transparent;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.text-btn:hover {
+  text-decoration: underline;
+}
+
+.stream-template-chips {
+  margin: 8px 0 10px;
+}
+
+.stream-list {
+  display: grid;
+  gap: 8px;
+}
+
+.stream-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.stream-name,
+.stream-actions input,
+.capacity-grid input {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fff;
+  font-family: var(--mono);
+  font-size: 0.86rem;
+}
+
+.stream-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.stream-remove {
+  min-height: 34px;
+  padding: 4px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.stream-remove:hover:not(:disabled) {
+  border-color: var(--danger, #b42318);
+  color: var(--danger, #b42318);
+}
+
+.stream-remove:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.capacity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.field-stack {
+  display: grid;
+  gap: 6px;
+}
+
+.stream-table thead:not(.sr-only) th {
+  padding: 10px 8px 6px;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.stream-table tbody th {
+  font-weight: 700;
+  text-align: left;
+}
+
+.stream-table .stream-total th,
+.stream-table .stream-total td {
+  border-top: 1px solid var(--line);
+  font-weight: 700;
+}
+
+.capacity-results {
+  margin-top: 4px;
+}
+
+.capacity-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.compare-value.small .num,
+.compare-value.small {
+  font-size: 1.05rem;
+}
+
 @keyframes rise {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }

@@ -1,13 +1,5 @@
-/**
- * Calculator product registry.
- *
- * To add a calculator:
- * 1. Create src/calculators/<id>/{model.js, view.js}
- * 2. Register it here (id, label, status, mount)
- * 3. Add <template id="tpl-<id>"> markup in index.html
- */
-
 import { mountSizingCalculator } from "./sizing/view.js";
+import { mountThroughputCalculator } from "./throughput/view.js";
 
 /**
  * @typedef {{
@@ -32,8 +24,10 @@ export const CALCULATORS = Object.freeze([
   Object.freeze({
     id: "throughput",
     label: "Throughput",
-    status: "planned",
-    description: "Back-of-the-envelope QPS, bandwidth, and concurrency sketches."
+    status: "available",
+    description:
+      "From DAU/MAU and per-use-case actions, estimate average and peak TPS — plus bandwidth and nodes.",
+    mount: mountThroughputCalculator
   }),
   Object.freeze({
     id: "cost",

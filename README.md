@@ -9,7 +9,7 @@ Interactive back-of-the-envelope calculators for storage sizing and capacity pla
 | Product | Status |
 | --- | --- |
 | **Sizing estimation** | Available |
-| Throughput | Planned |
+| **Throughput** | Available |
 | Cost envelope | Planned |
 
 ### Sizing estimation
@@ -21,6 +21,14 @@ Interactive back-of-the-envelope calculators for storage sizing and capacity pla
 - Apply YoY data growth with recommended bars for mature → hypergrowth systems, or enter a custom percent
 - Review a five-year compounded storage projection
 
+### Throughput
+
+- Start from DAU or MAU (MAU ÷ active days → daily users)
+- Add traffic streams (read / write / search / …) with actions per user per day
+- Apply a peak multiplier for busy periods
+- See average and peak TPS per stream and in total
+- Optional: payload bytes → bandwidth; TPS/node → nodes at peak
+
 Everything runs in the browser. No payload text is uploaded or stored.
 
 ## Architecture
@@ -31,7 +39,8 @@ src/
   ui/              # reusable widgets (chips, unit grid, projection table)
   calculators/
     registry.js    # product catalog + mount hooks
-    sizing/        # first calculator (model + view)
+    sizing/        # storage footprint (model + view)
+    throughput/    # DAU/MAU → avg/peak TPS (model + view)
   app.js           # shell: nav + host; swaps calculators without reloads
   styles/main.css
 ```

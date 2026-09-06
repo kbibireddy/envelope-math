@@ -225,9 +225,13 @@ export function mountSizingCalculator(root) {
 
     const canExtend = state.projectionYears < MAX_PROJECTION_YEARS;
     extendProjection.hidden = !canExtend;
+    extendProjection.disabled = !canExtend;
     extendProjection.textContent = canExtend
       ? `+${PROJECTION_YEAR_STEP} years`
-      : "Max 50 years";
+      : "50-year max";
+    extendProjection.title = canExtend
+      ? `Show ${Math.min(MAX_PROJECTION_YEARS, state.projectionYears + PROJECTION_YEAR_STEP)} years total (max ${MAX_PROJECTION_YEARS})`
+      : "Already at the 50-year limit";
   }
 
   const onInput = (event) => {

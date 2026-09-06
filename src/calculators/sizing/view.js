@@ -23,7 +23,6 @@ export function mountSizingCalculator(root) {
 
   const sampleText = /** @type {HTMLTextAreaElement} */ ($("sampleText", root));
   const charMeta = $("charMeta", root);
-  const growthHint = $("growthHint", root);
   const heroValue = $("heroValue", root);
   const heroSub = $("heroSub", root);
   const perRecordUnits = $("perRecordUnits", root);
@@ -64,7 +63,6 @@ export function mountSizingCalculator(root) {
       state.customGrowth = false;
       customGrowthField.clear();
       growthChips.sync();
-      syncGrowthHint(preset.hint);
       renderResults();
     }
   });
@@ -87,14 +85,9 @@ export function mountSizingCalculator(root) {
       state.growthPercent = value;
       state.customGrowth = true;
       growthChips.sync();
-      syncGrowthHint("Custom growth rate for your capacity model.");
       renderResults();
     }
   });
-
-  function syncGrowthHint(hint) {
-    setText(growthHint, hint ?? "");
-  }
 
   function renderResults() {
     const estimate = estimateSizing({
@@ -112,7 +105,7 @@ export function mountSizingCalculator(root) {
     setText(heroSub, estimate.summaryLine);
     setText(
       projectionHelper,
-      `Compounded annually at ${estimate.growthPercent}% YoY over ${estimate.projections.length - 1} years.`
+      `${estimate.growthPercent}% YoY · ${estimate.projections.length - 1} years`
     );
 
     renderUnitGrid(perRecordUnits, estimate.perRecordUnits);
@@ -127,11 +120,6 @@ export function mountSizingCalculator(root) {
 
   sampleText.addEventListener("input", onInput);
   sampleText.value = state.text;
-
-  const activeGrowth = GROWTH_PRESETS.find(
-    (preset) => preset.value === state.growthPercent
-  );
-  syncGrowthHint(activeGrowth?.hint ?? "");
   renderResults();
 
   return {

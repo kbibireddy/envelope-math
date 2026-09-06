@@ -35,38 +35,34 @@
       <section class="panel controls" aria-labelledby="inputs-title">
         <p class="eyebrow">Inputs</p>
         <h2 id="inputs-title">Sizing estimation</h2>
-        <p class="helper">UTF-8 size updates as you type. Multiplier and growth reshape the footprint live.</p>
 
         <div class="section">
-          <label class="field-label" for="sampleText">Sample record / payload text</label>
+          <label class="field-label" for="sampleText">Sample record / payload</label>
           <textarea id="sampleText" spellcheck="false" placeholder='{"userId":"u_1842","event":"checkout"}'></textarea>
           <p class="helper" id="charMeta">0 characters · 0 UTF-8 bytes</p>
         </div>
 
-        <div class="section">
-          <span class="field-label" id="multiplierLabel">Record multiplier</span>
-          <p class="helper">How many copies of this record will you store?</p>
-          <div class="chips" id="multiplierChips" role="group" aria-labelledby="multiplierLabel"></div>
-          <div class="custom-row">
-            <div>
-              <label class="field-label" for="customMultiplier">Custom count</label>
-              <input id="customMultiplier" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 2500000">
+        <div class="section compact scale-block">
+          <div class="scale-grid">
+            <div class="scale-col">
+              <span class="field-label" id="multiplierLabel">Records</span>
+              <div class="chips" id="multiplierChips" role="group" aria-labelledby="multiplierLabel"></div>
+              <div class="custom-row">
+                <label class="sr-only" for="customMultiplier">Custom record count</label>
+                <input id="customMultiplier" type="number" min="0" step="1" inputmode="numeric" placeholder="Custom count">
+                <button type="button" class="apply" id="applyMultiplier">Apply</button>
+              </div>
             </div>
-            <button type="button" class="apply" id="applyMultiplier">Use custom</button>
-          </div>
-        </div>
 
-        <div class="section">
-          <span class="field-label" id="growthLabel">YoY data growth</span>
-          <p class="helper">Planning bars for large-scale systems — or enter your own percent.</p>
-          <div class="chips" id="growthChips" role="group" aria-labelledby="growthLabel"></div>
-          <p class="chip-hint" id="growthHint"></p>
-          <div class="custom-row">
-            <div>
-              <label class="field-label" for="customGrowth">Custom growth (%)</label>
-              <input id="customGrowth" type="number" min="0" step="0.1" inputmode="decimal" placeholder="e.g. 35">
+            <div class="scale-col">
+              <span class="field-label" id="growthLabel">YoY growth</span>
+              <div class="chips" id="growthChips" role="group" aria-labelledby="growthLabel"></div>
+              <div class="custom-row">
+                <label class="sr-only" for="customGrowth">Custom growth percent</label>
+                <input id="customGrowth" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Custom %">
+                <button type="button" class="apply" id="applyGrowth">Apply</button>
+              </div>
             </div>
-            <button type="button" class="apply" id="applyGrowth">Use custom</button>
           </div>
         </div>
       </section>
@@ -81,9 +77,8 @@
           <span class="sub" id="heroSub">0 records × 0 bytes each</span>
         </div>
 
-        <div class="section">
+        <div class="section compact">
           <h3>Per-record size</h3>
-          <p class="helper">Units below 0.001 are hidden (no noise past three decimal zeros).</p>
           <div class="unit-grid" id="perRecordUnits"></div>
         </div>
 
@@ -92,9 +87,9 @@
           <div class="unit-grid" id="totalUnits"></div>
         </div>
 
-        <div class="section">
-          <h3>Five-year growth projection</h3>
-          <p class="helper" id="projectionHelper">Compounded annually growth over five years.</p>
+        <div class="section compact">
+          <h3>5-year projection</h3>
+          <p class="helper" id="projectionHelper"></p>
           <table class="projection">
             <thead>
               <tr>

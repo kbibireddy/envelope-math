@@ -9,6 +9,7 @@ import {
   fullSizeBreakdown,
   primarySize,
   sizeBreakdown,
+  toPlainDecimal,
   utf8ByteLength
 } from "./storage.js";
 import {
@@ -104,21 +105,36 @@ describe("formatting helpers", () => {
     expect(formatPrimary(1024)).toBe("1 KB");
   });
 
-  it("picks the largest unit with value ≥ 1 (no PB fallthrough gaps)", () => {
+  it("picks a scannable headline unit (IEC + promote ≥1000)", () => {
     expect(primarySize(0).key).toBe("B");
     expect(primarySize(104).key).toBe("B");
-    // Former [1000, 1024) gap — must stay on bytes, never tiny PB.
     expect(primarySize(1000).key).toBe("B");
-    expect(primarySize(1000).display).not.toMatch(/e/i);
     expect(primarySize(1024).key).toBe("KB");
     expect(primarySize(1024 ** 2).key).toBe("MB");
     expect(primarySize(1024 ** 3).key).toBe("GB");
-    // ~99 MB should read as MB, not a fractional GB.
+
+    // 10K records × 104 bytes = 1,040,000 bytes.
+    // Old [1,1000) picker fell through to ~9.237e-10 PB — must never happen.
+    const tenKRecords = 10_000 * 104;
+    expect(primarySize(tenKRecords).key).toBe("MB");
+    expect(primarySize(tenKRecords).value).toBeGreaterThan(0.9);
+    expect(primarySize(tenKRecords).value).toBeLessThan(1);
+    expect(formatPrimary(tenKRecords)).toMatch(/^0\.9918 MB$/);
+    expect(formatPrimary(tenKRecords)).not.toMatch(/e|PB/i);
+
+    // ~99 MB stays MB (not fractional GB).
     const roughly99Mb = 104_000_000;
     expect(primarySize(roughly99Mb).key).toBe("MB");
     expect(primarySize(roughly99Mb).value).toBeGreaterThanOrEqual(1);
-    expect(primarySize(roughly99Mb).value).toBeLessThan(1024);
+    expect(primarySize(roughly99Mb).value).toBeLessThan(1000);
     expect(formatPrimary(roughly99Mb)).not.toMatch(/e/i);
+  });
+
+  it("never emits scientific notation from formatters", () => {
+    const tiny = 9.237e-10;
+    expect(formatCompactNumber(tiny)).toBe("0");
+    expect(formatDetailNumber(tiny)).toBe("0");
+    expect(toPlainDecimal(tiny)).toBe("0");
   });
 });
 

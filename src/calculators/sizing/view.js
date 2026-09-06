@@ -28,11 +28,13 @@ export function mountSizingCalculator(root) {
 
   const sampleText = /** @type {HTMLTextAreaElement} */ ($("sampleText", root));
   const charMeta = $("charMeta", root);
-  const perRecordPrimary = $("perRecordPrimary", root);
+  const perRecordPrimaryValue = $("perRecordPrimaryValue", root);
+  const perRecordPrimaryUnit = $("perRecordPrimaryUnit", root);
   const perRecordSub = $("perRecordSub", root);
   const perRecordUnits = $("perRecordUnits", root);
   const perRecordPopoverBody = $("perRecordPopoverBody", root);
-  const totalPrimary = $("totalPrimary", root);
+  const totalPrimaryValue = $("totalPrimaryValue", root);
+  const totalPrimaryUnit = $("totalPrimaryUnit", root);
   const totalSub = $("totalSub", root);
   const totalUnits = $("totalUnits", root);
   const totalPopoverBody = $("totalPopoverBody", root);
@@ -120,7 +122,8 @@ export function mountSizingCalculator(root) {
       `${estimate.textLength.toLocaleString("en-US")} characters · ${estimate.bytesPerRecord.toLocaleString("en-US")} UTF-8 bytes`
     );
 
-    setAnimatedText(perRecordPrimary, estimate.perRecordLabel);
+    setAnimatedText(perRecordPrimaryValue, estimate.perRecordPrimary.display);
+    setText(perRecordPrimaryUnit, estimate.perRecordPrimary.label);
     setText(perRecordSub, "UTF-8 payload size");
     renderUnitGrid(perRecordUnits, estimate.perRecordUnits);
     renderSizePopover(
@@ -129,7 +132,8 @@ export function mountSizingCalculator(root) {
       "All units · 2 decimal places max"
     );
 
-    setAnimatedText(totalPrimary, estimate.heroLabel);
+    setAnimatedText(totalPrimaryValue, estimate.totalPrimary.display);
+    setText(totalPrimaryUnit, estimate.totalPrimary.label);
     setText(totalSub, estimate.summaryLine);
     renderUnitGrid(totalUnits, estimate.totalUnits);
     renderSizePopover(

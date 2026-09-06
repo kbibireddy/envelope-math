@@ -20,6 +20,13 @@ export const UNIT_VISIBILITY_THRESHOLD = 0.01;
 /** Compact with K / M / B once the numeric magnitude is greater than 9999. */
 export const COMPACT_NUMBER_THRESHOLD = 9999;
 
+/**
+ * Prefer promoting to the next storage unit once the value reaches this.
+ * Keeps headlines in a scannable ~1–999 range (industry UI convention),
+ * instead of awkward values like "1016 KB".
+ */
+export const HEADLINE_PROMOTE_THRESHOLD = 1000;
+
 const textEncoder = new TextEncoder();
 
 /** UTF-8 byte length (matches browser TextEncoder). */
@@ -40,9 +47,42 @@ export function toSignificantDigits(value, maxDigits) {
 }
 
 /**
+ * Render a number as plain decimal text — never scientific notation.
+ * @param {number} value
+ * @param {number} [maxFractionDigits]
+ */
+export function toPlainDecimal(value, maxFractionDigits = 12) {
+  if (!Number.isFinite(value) || value === 0) return "0";
+
+  const sign = value < 0 ? "-" : "";
+  const abs = Math.abs(value);
+
+  // Extremely large: round to integer string.
+  if (abs >= 1e15) {
+    return `${sign}${Math.round(abs).toLocaleString("en-US", { useGrouping: false })}`;
+  }
+
+  // Prefer toFixed for values that JS would otherwise stringify with "e".
+  let raw;
+  if (abs >= 1e-6 && abs < 1e15) {
+    raw = abs.toFixed(maxFractionDigits);
+  } else if (abs < 1e-6) {
+    // Sub-micro leftovers are noise for storage UI.
+    return "0";
+  } else {
+    raw = abs.toFixed(0);
+  }
+
+  // Trim trailing zeros / dangling decimal point.
+  raw = raw.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+  return `${sign}${raw}`;
+}
+
+/**
  * Main-view number formatter:
  * - at most 4 significant digits
  * - values > 9999 → K / M / B suffix
+ * - never scientific notation
  */
 export function formatCompactNumber(value) {
   if (!Number.isFinite(value) || value === 0) return "0";
@@ -51,7 +91,6 @@ export function formatCompactNumber(value) {
   const abs = Math.abs(value);
 
   if (abs > COMPACT_NUMBER_THRESHOLD) {
-    // abs > 9999 → K / M / B (includes 10000+)
     const tiers = [
       { div: 1e12, suffix: "T" },
       { div: 1e9, suffix: "B" },
@@ -61,13 +100,13 @@ export function formatCompactNumber(value) {
     for (const tier of tiers) {
       if (abs >= tier.div) {
         const scaled = toSignificantDigits(abs / tier.div, 4);
-        return `${sign}${stripTrailingZeros(scaled)}${tier.suffix}`;
+        return `${sign}${toPlainDecimal(scaled, 4)}${tier.suffix}`;
       }
     }
   }
 
   const compact = toSignificantDigits(abs, 4);
-  return `${sign}${stripTrailingZeros(compact)}`;
+  return `${sign}${toPlainDecimal(compact, 4)}`;
 }
 
 /**
@@ -76,7 +115,7 @@ export function formatCompactNumber(value) {
 export function formatDetailNumber(value) {
   if (!Number.isFinite(value) || value === 0) return "0";
   const rounded = Math.round(value * 100) / 100;
-  return stripTrailingZeros(rounded);
+  return toPlainDecimal(rounded, 2);
 }
 
 /** @deprecated Prefer formatCompactNumber — kept as the main-view alias. */
@@ -87,23 +126,6 @@ export function formatUnitValue(value) {
 export function formatCount(value) {
   if (!Number.isFinite(value)) return "0";
   return formatCompactNumber(value);
-}
-
-function stripTrailingZeros(value) {
-  const asNumber = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(asNumber)) return "0";
-  // Never use scientific notation in the UI — keep ordinary decimal text.
-  if (Math.abs(asNumber) >= 1e15) {
-    return Math.round(asNumber).toLocaleString("en-US", { useGrouping: false });
-  }
-  const fixed = asNumber.toString();
-  if (fixed.includes("e") || fixed.includes("E")) {
-    // Extremely small leftovers: treat as zero for display.
-    if (Math.abs(asNumber) < 1e-6) return "0";
-    return asNumber.toFixed(4).replace(/\.?0+$/, "");
-  }
-  if (!fixed.includes(".")) return fixed;
-  return fixed.replace(/\.?0+$/, "");
 }
 
 /**
@@ -149,10 +171,16 @@ export function fullSizeBreakdown(bytes) {
 }
 
 /**
- * Human-scale headline unit (industry-standard binary pick):
- * choose the largest unit where value ≥ 1.
- * That keeps the magnitude in [1, 1024) for every rung below PB, and
- * avoids the [1000, 1024) gap that previously fell through to tiny PB.
+ * Human-scale headline unit — industry pattern used by `numfmt --to=iec`,
+ * Docker, and Kubernetes quantity formatting:
+ *
+ * 1. Walk the binary ladder while value ≥ 1024 (IEC step).
+ * 2. If the result is still ≥ 1000 and a larger unit exists, promote once
+ *    more so the headline stays in a scannable ~0.98–999 range
+ *    (avoids "1016 KB"; prefers "0.9912 MB").
+ * 3. Never fall through to a tiny PB / scientific notation.
+ *
+ * @param {number} bytes
  */
 export function primarySize(bytes) {
   const safeBytes = Number.isFinite(bytes) && bytes > 0 ? bytes : 0;
@@ -160,19 +188,30 @@ export function primarySize(bytes) {
     return { key: "B", label: "bytes", value: 0, display: "0" };
   }
 
-  let chosen = STORAGE_UNITS[0];
-  for (let i = STORAGE_UNITS.length - 1; i >= 0; i -= 1) {
-    const unit = STORAGE_UNITS[i];
-    if (safeBytes >= unit.divisor) {
-      chosen = unit;
-      break;
-    }
+  let index = 0;
+  let value = safeBytes;
+
+  // Step 1: classic IEC — divide by 1024 until under one full step.
+  while (index < STORAGE_UNITS.length - 1 && value >= 1024) {
+    value /= 1024;
+    index += 1;
   }
 
-  const value = safeBytes / chosen.divisor;
+  // Step 2: scannability bump for units above bytes — prefer "0.99 MB"
+  // over "1016 KB". Do not promote bare byte counts (keep "1000 bytes").
+  if (
+    index >= 1 &&
+    index < STORAGE_UNITS.length - 1 &&
+    value >= HEADLINE_PROMOTE_THRESHOLD
+  ) {
+    value /= 1024;
+    index += 1;
+  }
+
+  const unit = STORAGE_UNITS[index];
   return {
-    key: chosen.key,
-    label: chosen.label,
+    key: unit.key,
+    label: unit.label,
     value,
     display: formatCompactNumber(value)
   };

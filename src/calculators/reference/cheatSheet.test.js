@@ -9,7 +9,7 @@ import {
 } from "./cheatSheet.js";
 
 describe("cheat sheet reference data", () => {
-  it("covers ByteByteGo power-of-two ladder KB→PB", () => {
+  it("covers ByteByteGo power-of-two ladder KB through PB", () => {
     expect(POWER_OF_TWO.map((row) => row.short)).toEqual([
       "KB",
       "MB",
@@ -28,7 +28,7 @@ describe("cheat sheet reference data", () => {
         "L1 cache reference",
         "Main memory reference",
         "Disk seek",
-        "Send packet CA → Netherlands → CA"
+        "Send packet CA to Netherlands to CA"
       ])
     );
   });

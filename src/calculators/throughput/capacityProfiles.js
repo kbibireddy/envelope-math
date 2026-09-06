@@ -1,9 +1,9 @@
 /**
  * Capacity envelopes scoped by investigation focus.
- * Assess one layer at a time — app servers, databases, cache, or queues —
+ * Assess one layer at a time: app servers, databases, cache, or queues.
  * so options stay relevant to what you are sizing right now.
  *
- * Numbers are conservative back-of-envelope defaults for interviews / planning —
+ * Numbers are conservative back-of-envelope defaults for interviews and planning.
  * not load-test guarantees. Workload shape (payload, query complexity, hot keys)
  * can move these by 2–10×.
  *
@@ -33,22 +33,22 @@ export const INVESTIGATION_FOCUSES = Object.freeze([
   Object.freeze({
     id: "app",
     label: "App servers",
-    hint: "DAU/MAU edge traffic → app servers & load balancers"
+    hint: "Use DAU or MAU edge traffic to size app servers and load balancers."
   }),
   Object.freeze({
     id: "database",
     label: "Databases",
-    hint: "Query / request RPS → primary store capacity"
+    hint: "Use query or request RPS to size primary store capacity."
   }),
   Object.freeze({
     id: "cache",
     label: "Cache",
-    hint: "Ops/s on the hot path → cache tier capacity"
+    hint: "Use ops/s on the hot path to size cache capacity."
   }),
   Object.freeze({
     id: "queue",
     label: "Queues",
-    hint: "Messages/s → produce & consume capacity"
+    hint: "Use messages/s to size produce and consume capacity."
   })
 ]);
 
@@ -75,7 +75,7 @@ export const CAPACITY_PROFILES = Object.freeze([
     conservativeTps: 1_000,
     optimisticTps: 10_000,
     connections:
-      "Concurrency ≈ open work. Each concurrent exec can open a DB connection — use RDS Proxy / pooling.",
+      "Concurrency is about open work. Each concurrent execution can open a DB connection, so use RDS Proxy or pooling.",
     limits:
       "Account concurrency often starts ~1k/region (soft). Scaling rate is limited; cold starts matter.",
     tip: "concurrency ≈ peak_RPS × latency_seconds (e.g. 5k RPS × 0.1s = 500)."
@@ -113,7 +113,7 @@ export const CAPACITY_PROFILES = Object.freeze([
     unitLabel: "hot partition",
     conservativeTps: 1_000,
     optimisticTps: 3_000,
-    connections: "HTTP API — no TCP connection pool to size.",
+    connections: "HTTP API. There is no TCP connection pool to size.",
     limits:
       "Hard ceiling ≈ 1k WCU + 3k RCU per partition (≈1 KB write / 4 KB read units). Hot keys throttle even if the table has spare capacity.",
     tip: "Design partition keys for spread. On-demand helps aggregate load, not celebrity keys."
@@ -202,7 +202,7 @@ export function getInvestigationFocus(investigationId) {
 }
 
 /**
- * Systems relevant to one investigation — not the full catalog.
+ * Systems relevant to one investigation, not the full catalog.
  * @param {string | null | undefined} investigationId
  * @returns {CapacityProfile[]}
  */

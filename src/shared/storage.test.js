@@ -66,7 +66,7 @@ describe("sizeBreakdown visibility", () => {
 });
 
 describe("fullSizeBreakdown", () => {
-  it("always returns the full B→PB ladder with 2-decimal detail values", () => {
+  it("always returns the full B through PB ladder with 2-decimal detail values", () => {
     const rows = fullSizeBreakdown(104);
     expect(rows.map((row) => row.key)).toEqual([
       "B",
@@ -115,7 +115,7 @@ describe("formatting helpers", () => {
     expect(primarySize(1024 ** 3).key).toBe("GB");
 
     // 10K records × 104 bytes = 1,040,000 bytes.
-    // Old [1,1000) picker fell through to ~9.237e-10 PB — must never happen.
+    // Old [1,1000) picker fell through to ~9.237e-10 PB. That must never happen.
     const tenKRecords = 10_000 * 104;
     expect(primarySize(tenKRecords).key).toBe("MB");
     expect(primarySize(tenKRecords).value).toBeGreaterThan(0.9);

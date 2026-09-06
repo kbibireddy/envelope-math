@@ -546,7 +546,7 @@ export function mountThroughputCalculator(root) {
    */
   function audienceConversionLabel(estimate) {
     if (estimate.trafficMode === "rate") return estimate.audienceLabel;
-    return `${estimate.audienceLabel} → ${estimate.totalAvgTpsLabel} avg · ${estimate.totalPeakTpsLabel} peak RPS`;
+    return `${estimate.audienceLabel}: ${estimate.totalAvgTpsLabel} avg, ${estimate.totalPeakTpsLabel} peak RPS`;
   }
 
   function renderStreamEditor() {
@@ -668,7 +668,7 @@ export function mountThroughputCalculator(root) {
     const totalPeak = document.createElement("td");
     totalPeak.textContent = estimate.totalPeakTpsLabel;
     const totalShare = document.createElement("td");
-    totalShare.textContent = estimate.streams.length ? "100%" : "—";
+    totalShare.textContent = estimate.streams.length ? "100%" : "n/a";
     total.append(totalLabel, totalRate, totalAvg, totalPeak, totalShare);
     fragment.appendChild(total);
 
@@ -713,7 +713,7 @@ export function mountThroughputCalculator(root) {
       setText(
         footnoteTraffic,
         traffic.mode === "audience"
-          ? "DAU/MAU × actions/user/day ÷ 86,400 → avg RPS (app / LB)"
+          ? "DAU or MAU times actions per user per day, divided by 86,400, gives avg RPS for app servers and load balancers"
           : `${focus.label}: enter ${traffic.rateSuffix} directly (not end-user DAU)`
       );
       setText(footnotePeak, "avg RPS × peak multiplier");
@@ -752,12 +752,12 @@ export function mountThroughputCalculator(root) {
       throughputSummary,
       hasFocus ? estimate.summaryLine : "Pick an investigation to estimate"
     );
-    setText(bandwidthAvg, hasFocus ? estimate.avgBandwidthLabel : "—");
-    setText(bandwidthPeak, hasFocus ? estimate.peakBandwidthLabel : "—");
+    setText(bandwidthAvg, hasFocus ? estimate.avgBandwidthLabel : "n/a");
+    setText(bandwidthPeak, hasFocus ? estimate.peakBandwidthLabel : "n/a");
     setText(
       nodesNeeded,
       !hasFocus || estimate.nodesNeeded == null
-        ? "—"
+        ? "n/a"
         : formatGrouped(estimate.nodesNeeded)
     );
 

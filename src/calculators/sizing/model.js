@@ -28,7 +28,7 @@ export const SIZING_DEFAULTS = Object.freeze({
 });
 
 /**
- * Pure sizing model — no DOM. Safe to unit-test and reuse.
+ * Pure sizing model with no DOM. Safe to unit-test and reuse.
  *
  * @param {{
  *   text?: string,

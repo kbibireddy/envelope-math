@@ -4,7 +4,7 @@ import { utf8ByteLength } from "./storage.js";
  * @typedef {{ id: string, label: string, bytes: number, hint?: string }} SampleFillPreset
  */
 
-/** Append targets — approximate UTF-8 sizes for JSON-like filler. */
+/** Append targets. These are approximate UTF-8 sizes for JSON-like filler. */
 /** @type {ReadonlyArray<SampleFillPreset>} */
 export const SAMPLE_FILL_PRESETS = Object.freeze([
   Object.freeze({

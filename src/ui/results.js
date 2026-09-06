@@ -136,7 +136,7 @@ export function renderProjectionTable(tbody, projections) {
 
     const multipleCell = document.createElement("td");
     if (year0 === 0) {
-      multipleCell.textContent = "—";
+      multipleCell.textContent = "n/a";
     } else if (row.year === 0) {
       multipleCell.textContent = "1×";
     } else {

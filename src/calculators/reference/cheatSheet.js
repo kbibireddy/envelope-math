@@ -1,6 +1,6 @@
 /**
  * Back-of-the-envelope cheat sheet numbers.
- * Aligned with ByteByteGo / Jeff Dean style interview references —
+ * Aligned with ByteByteGo / Jeff Dean style interview references.
  * order-of-magnitude aids, not lab benchmarks.
  */
 
@@ -40,15 +40,15 @@ export const LATENCY_NUMBERS = Object.freeze([
   }),
   Object.freeze({ op: "Read 1 MB sequentially from disk", time: "30 ms" }),
   Object.freeze({
-    op: "Send packet CA → Netherlands → CA",
+    op: "Send packet CA to Netherlands to CA",
     time: "150 ms"
   })
 ]);
 
 /** @type {ReadonlyArray<{ rule: string }>} */
 export const LATENCY_TAKEAWAYS = Object.freeze([
-  Object.freeze({ rule: "Memory is fast; disk is slow — avoid seeks when you can." }),
-  Object.freeze({ rule: "Simple compression is cheap — compress before WAN transfer." }),
+  Object.freeze({ rule: "Memory is fast; disk is slow. Avoid seeks when you can." }),
+  Object.freeze({ rule: "Simple compression is cheap. Compress before WAN transfer." }),
   Object.freeze({ rule: "Same-DC RTT ≈ 0.5 ms; cross-region is tens–hundreds of ms." }),
   Object.freeze({ rule: "Sequential reads beat random I/O by orders of magnitude." })
 ]);
@@ -127,11 +127,11 @@ export const COMMON_FORMULAS = Object.freeze([
 export const ESTIMATION_TIPS = Object.freeze([
   Object.freeze({
     tip: "Round aggressively",
-    why: "99987 / 9.1 → ~100,000 / 10. Precision is not the point."
+    why: "99987 / 9.1 is about 100,000 / 10. Precision is not the point."
   }),
   Object.freeze({
     tip: "Write assumptions",
-    why: "DAU %, actions/day, payload size, retention — revisit them later."
+    why: "DAU %, actions/day, payload size, retention. Revisit them later."
   }),
   Object.freeze({
     tip: "Label every unit",
@@ -139,7 +139,7 @@ export const ESTIMATION_TIPS = Object.freeze([
   }),
   Object.freeze({
     tip: "Practice the usual asks",
-    why: "RPS, peak RPS, storage, cache size, #servers — same toolkit each time."
+    why: "RPS, peak RPS, storage, cache size, and server count. Same toolkit each time."
   }),
   Object.freeze({
     tip: "Process > exact answer",

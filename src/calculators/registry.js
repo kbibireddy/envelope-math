@@ -35,7 +35,7 @@ export const CALCULATORS = Object.freeze([
     label: "Cheat sheet",
     status: "available",
     description:
-      "Power of two, latency, availability nines, and estimation formulas — interview reference tables.",
+      "Power of two, latency, availability nines, and estimation formulas. Interview reference tables.",
     mount: mountReferenceCheatSheet
   })
 ]);

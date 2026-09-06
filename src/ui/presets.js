@@ -1,6 +1,6 @@
 import { clear } from "./dom.js";
 
-/** Largest integer JS can represent safely — hard cap for record counts. */
+/** Largest integer JS can represent safely. This is the hard cap for record counts. */
 export const MAX_RECORD_COUNT = Number.MAX_SAFE_INTEGER;
 
 /** Max custom YoY growth: 100× (10,000%). */
@@ -254,7 +254,7 @@ export function bindCustomValueChip({
   };
 }
 
-/** @deprecated Prefer bindCustomValueChip — kept for older call sites. */
+/** @deprecated Prefer bindCustomValueChip. Kept for older call sites. */
 export function bindCustomNumber({ input, button, parse = parseNonNegative, onApply }) {
   const apply = () => {
     const value = parse(input.value);
@@ -319,7 +319,7 @@ export function formatGrouped(value, integer = true) {
   return frac !== undefined ? `${grouped}.${frac}` : grouped;
 }
 
-/** Live typing formatter — keeps commas while the user types. */
+/** Live typing formatter. Keeps commas while the user types. */
 export function formatGroupedTyping(raw, integer = true) {
   const cleaned = String(raw).replace(/[^\d.]/g, "");
   if (cleaned === "" || cleaned === ".") return cleaned;

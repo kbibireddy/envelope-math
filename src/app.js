@@ -11,7 +11,7 @@ import {
  * Switching products tears down the previous mount and mounts the next.
  *
  * Extension point: register a calculator in registry.js and add
- * <template id="tpl-<id}"> markup — the shell mounts it automatically.
+ * <template id="tpl-<id}"> markup . the shell mounts it automatically.
  */
 export function startApp() {
   const nav = $("productNav");

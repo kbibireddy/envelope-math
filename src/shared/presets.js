@@ -14,7 +14,7 @@ export const MULTIPLIER_PRESETS = Object.freeze([
   Object.freeze({ label: "1B", value: 1_000_000_000 })
 ]);
 
-/** YoY growth bars for mature → hypergrowth capacity planning. */
+/** YoY growth bars for mature through hypergrowth capacity planning. */
 /** @type {ReadonlyArray<NumericPreset>} */
 export const GROWTH_PRESETS = Object.freeze([
   Object.freeze({ label: "10%", value: 10, hint: "Mature / stable systems" }),
@@ -29,7 +29,7 @@ export const GROWTH_PRESETS = Object.freeze([
  * Envelope compression presets for JSON/text-like payloads.
  * Ratios are typical post-compression fractions of raw UTF-8 size.
  * decodeMBs is a rough expected decompression throughput (uncompressed
- * MB/s) — back-of-envelope for read-path cost, not a codec benchmark.
+ * MB/s) . back-of-envelope for read-path cost, not a codec benchmark.
  *
  * @typedef {{
  *   id: string,
@@ -47,28 +47,28 @@ export const COMPRESSION_PRESETS = Object.freeze([
     label: "gz",
     ratio: 0.33,
     decodeMBs: 300,
-    hint: "gzip — ~3× size, ~300 MB/s decode"
+    hint: "gzip . ~3× size, ~300 MB/s decode"
   }),
   Object.freeze({
     id: "zstd-1",
     label: "zstd(1)",
     ratio: 0.3,
     decodeMBs: 1000,
-    hint: "zstd level 1 — fast, ~1 GB/s decode"
+    hint: "zstd level 1 . fast, ~1 GB/s decode"
   }),
   Object.freeze({
     id: "zstd-11",
     label: "zstd(11)",
     ratio: 0.22,
     decodeMBs: 700,
-    hint: "zstd level 11 — balanced, ~700 MB/s decode"
+    hint: "zstd level 11 . balanced, ~700 MB/s decode"
   }),
   Object.freeze({
     id: "zstd-22",
     label: "zstd(22)",
     ratio: 0.17,
     decodeMBs: 500,
-    hint: "zstd level 22 — max ratio, ~500 MB/s decode"
+    hint: "zstd level 22 . max ratio, ~500 MB/s decode"
   })
 ]);
 
@@ -83,7 +83,7 @@ export function getCompressionPreset(id) {
  */
 export function formatDecodeSpeed(megabytesPerSecond) {
   const rate = Number(megabytesPerSecond);
-  if (!Number.isFinite(rate) || rate <= 0) return "—";
+  if (!Number.isFinite(rate) || rate <= 0) return "n/a";
   if (rate >= 1000) {
     const gb = rate / 1000;
     const rounded = gb >= 10 ? Math.round(gb) : Math.round(gb * 10) / 10;
@@ -113,7 +113,7 @@ export function estimateDecodeLatencyMs(uncompressedBytes, decodeMBs) {
  */
 export function formatDecodeLatency(latencyMs) {
   const ms = Number(latencyMs);
-  if (!Number.isFinite(ms) || ms < 0) return "—";
+  if (!Number.isFinite(ms) || ms < 0) return "n/a";
   if (ms === 0) return "0 µs";
   if (ms < 0.001) {
     const ns = ms * 1_000_000;

@@ -13,7 +13,7 @@ export const STORAGE_UNITS = Object.freeze([
 /**
  * Main-view visibility floor.
  * Hide a unit when its value is < 0.01 (more than two zeros after the decimal
- * before a significant digit — e.g. 0.009).
+ * before a significant digit, for example 0.009).
  */
 export const UNIT_VISIBILITY_THRESHOLD = 0.01;
 
@@ -47,7 +47,7 @@ export function toSignificantDigits(value, maxDigits) {
 }
 
 /**
- * Render a number as plain decimal text — never scientific notation.
+ * Render a number as plain decimal text. Never use scientific notation.
  * @param {number} value
  * @param {number} [maxFractionDigits]
  */
@@ -81,7 +81,7 @@ export function toPlainDecimal(value, maxFractionDigits = 12) {
 /**
  * Main-view number formatter:
  * - at most 4 significant digits
- * - values > 9999 → K / M / B suffix
+ * - values > 9999 use a K / M / B suffix
  * - never scientific notation
  */
 export function formatCompactNumber(value) {
@@ -111,7 +111,7 @@ export function formatCompactNumber(value) {
 
 /**
  * Detail / popover formatter: ≤ 2 digits after the decimal, with grouping commas.
- * e.g. 104000000 → "104,000,000"; 99.182 → "99.18"
+ * for example 104000000 becomes "104,000,000"; 99.182 becomes "99.18"
  */
 export function formatDetailNumber(value) {
   if (!Number.isFinite(value) || value === 0) return "0";
@@ -124,7 +124,7 @@ export function formatDetailNumber(value) {
 
 /**
  * Unit-grid formatter: commas + up to 4 significant digits.
- * No K/M/B here — the unit label (bytes/KB/MB…) already carries scale.
+ * No K/M/B here. The unit label (bytes/KB/MB…) already carries scale.
  */
 export function formatGridNumber(value) {
   if (!Number.isFinite(value) || value === 0) return "0";
@@ -135,7 +135,7 @@ export function formatGridNumber(value) {
   });
 }
 
-/** @deprecated Prefer formatCompactNumber — kept as the main-view alias. */
+/** @deprecated Prefer formatCompactNumber. Kept as the main-view alias. */
 export function formatUnitValue(value) {
   return formatCompactNumber(value);
 }
@@ -171,7 +171,7 @@ export function sizeBreakdown(bytes) {
 }
 
 /**
- * Full B→PB ladder for info popovers (always all six units).
+ * Full B through PB ladder for info popovers (always all six units).
  * Detail formatting: ≤ 2 digits after the decimal, with commas.
  */
 export function fullSizeBreakdown(bytes) {
@@ -188,7 +188,7 @@ export function fullSizeBreakdown(bytes) {
 }
 
 /**
- * Human-scale headline unit — industry pattern used by `numfmt --to=iec`,
+ * Human-scale headline unit. This follows the industry pattern used by `numfmt --to=iec`,
  * Docker, and Kubernetes quantity formatting:
  *
  * 1. Walk the binary ladder while value ≥ 1024 (IEC step).
@@ -208,13 +208,13 @@ export function primarySize(bytes) {
   let index = 0;
   let value = safeBytes;
 
-  // Step 1: classic IEC — divide by 1024 until under one full step.
+  // Step 1: classic IEC. Divide by 1024 until under one full step.
   while (index < STORAGE_UNITS.length - 1 && value >= 1024) {
     value /= 1024;
     index += 1;
   }
 
-  // Step 2: scannability bump for units above bytes — prefer "0.99 MB"
+  // Step 2: scannability bump for units above bytes. Prefer "0.99 MB"
   // over "1016 KB". Do not promote bare byte counts (keep "1000 bytes").
   if (
     index >= 1 &&

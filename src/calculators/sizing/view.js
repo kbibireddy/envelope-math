@@ -31,11 +31,11 @@ import {
   estimateSizing
 } from "./model.js";
 
-/** Fixed ladder rows shown in the footprint table (B → TB). */
+/** Fixed ladder rows shown in the footprint table (B through TB). */
 const FOOTPRINT_UNITS = STORAGE_UNITS.filter((unit) => unit.key !== "PB");
 
 /**
- * Build aligned B→TB rows for the shared comparison table.
+ * Build aligned B through TB rows for the shared comparison table.
  * @param {number} perBytes
  * @param {number} totalBytes
  * @param {string} perPrimaryKey
@@ -210,7 +210,7 @@ export function mountSizingCalculator(root) {
   });
   sampleFillChips.appendChild(resetFillBtn);
 
-  // Exclusive compression toggles — selecting one clears the others;
+  // Exclusive compression toggles. Selecting one clears the others;
   // clicking the active one turns compression off.
   for (const preset of COMPRESSION_PRESETS) {
     const btn = document.createElement("button");

@@ -16,10 +16,10 @@ Interactive back-of-the-envelope calculators for storage sizing and capacity pla
 
 | Topic | Detail |
 | --- | --- |
-| Input | Paste sample record / payload text — UTF-8 size updates live |
-| Units | bytes → PB; higher units drop when value would be &lt; `0.001` |
-| Scale | Record multiplier presets (1 → 1B) plus custom counts |
-| Growth | YoY bars for mature → hypergrowth, or custom % |
+| Input | Paste sample record / payload text . UTF-8 size updates live |
+| Units | bytes to PB; higher units drop when value would be &lt; `0.001` |
+| Scale | Record multiplier presets (1 to 1B) plus custom counts |
+| Growth | YoY bars for mature to hypergrowth, or custom % |
 | Output | Five-year compounded storage projection |
 
 ### Throughput
@@ -30,7 +30,7 @@ Interactive back-of-the-envelope calculators for storage sizing and capacity pla
 | App servers | DAU/MAU + actions/user/day (edge / load-balancer traffic) |
 | Internal systems | Direct average RPS |
 | Peak | Avg × peak multiplier |
-| Capacity | Match envelopes; optional payload → bandwidth and units @ peak |
+| Capacity | Match envelopes; optional payload to bandwidth and units @ peak |
 
 ### Cheat sheet
 
@@ -38,7 +38,7 @@ Interview reference tables verified against [ByteByteGo back-of-the-envelope est
 
 | Table | Contents |
 | --- | --- |
-| Power of two | KB → PB mental math |
+| Power of two | KB to PB mental math |
 | Latency | Classic Dean / High Scalability operation times |
 | Availability | Downtime for 2–6 nines |
 | Formulas | RPS, storage, servers, bandwidth |
@@ -51,12 +51,12 @@ Everything runs in the browser. No payload text is uploaded or stored.
 
 ```
 src/
-  shared/          # pure math (storage units, growth, presets) — no DOM
+  shared/          # pure math (storage units, growth, presets) . no DOM
   ui/              # reusable widgets (chips, unit grid, projection table)
   calculators/
     registry.js    # product catalog + mount hooks
     sizing/        # storage footprint (model + view)
-    throughput/    # investigation-scoped traffic → avg/peak RPS (model + view)
+    throughput/    # investigation-scoped traffic to avg/peak RPS (model + view)
     reference/     # ByteByteGo-aligned cheat sheet tables
   app.js           # shell: nav + host; swaps calculators without reloads
   styles/main.css
@@ -64,7 +64,7 @@ src/
 
 **Adding a calculator**
 
-1. Create `src/calculators/<id>/{model.js, view.js}` — keep math in `model.js`, DOM in `view.js`
+1. Create `src/calculators/<id>/{model.js, view.js}` . keep math in `model.js`, DOM in `view.js`
 2. Reuse `src/shared/*` and `src/ui/*` where possible
 3. Register the product in `src/calculators/registry.js`
 4. Add `<template id="tpl-<id}">` markup in `index.html`

@@ -99,7 +99,7 @@ describe("estimateThroughput", () => {
     expect(result.totalPeakTps).toBeCloseTo(result.totalAvgTps * 3);
     expect(result.avgBandwidthBps).toBeCloseTo(result.totalAvgTps * 1024);
     expect(result.nodesNeeded).toBe(Math.ceil(result.totalPeakTps / 1000));
-    expect(result.avgBandwidthLabel).not.toBe("—");
+    expect(result.avgBandwidthLabel).not.toBe("n/a");
   });
 });
 
@@ -154,7 +154,7 @@ describe("format helpers", () => {
     expect(formatTps(0)).toBe("0");
     expect(formatTps(12.34)).toMatch(/12/);
     expect(formatTps(12_500)).toMatch(/K/);
-    expect(formatBandwidth(0)).toBe("—");
+    expect(formatBandwidth(0)).toBe("n/a");
     expect(formatBandwidth(2048)).toMatch(/KB\/s/);
   });
 });

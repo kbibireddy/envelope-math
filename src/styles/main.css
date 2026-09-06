@@ -63,7 +63,7 @@ body {
 button, input, textarea { font: inherit; }
 button { cursor: pointer; }
 
-/* Full-bleed shell — matches the viewport edge-to-edge. */
+/* Full-bleed shell. Matches the viewport edge-to-edge. */
 .shell {
   box-sizing: border-box;
   width: 100%;
@@ -184,7 +184,7 @@ h3 { font-size: 0.98rem; }
 .section:first-of-type { padding-top: 6px; }
 .section:last-child { border-bottom: 0; padding-bottom: 0; }
 
-/* Sample left, Records/YoY right — scale stays short on the right */
+/* Sample left, Records/YoY right. Scale stays short on the right */
 .inputs-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -814,7 +814,7 @@ input:focus {
   }
 }
 
-/* Read-only metrics — not editable fields */
+/* Read-only metrics. These are not editable fields */
 .unit-cell {
   padding: 10px 2px 8px;
   border: 0;

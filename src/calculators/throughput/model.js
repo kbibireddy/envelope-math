@@ -1,7 +1,7 @@
 /**
  * Throughput envelope math.
- * App-server investigations: DAU/MAU × actions/user/day → RPS.
- * Databases / cache / queues: direct average rate → RPS.
+ * App-server investigations turn DAU or MAU and actions per user per day into RPS.
+ * Databases, caches, and queues turn a direct average rate into RPS.
  * Pure functions only (no DOM).
  */
 
@@ -83,7 +83,7 @@ export const TRAFFIC_BY_FOCUS = Object.freeze({
     audienceLabel: "Audience",
     streamsTitle: "Edge traffic streams",
     streamsHelper:
-      "DAU/MAU and actions/user/day — for app servers and load balancers.",
+      "Use DAU or MAU and actions per user per day when sizing app servers and load balancers.",
     rateColumn: "Actions/user/day",
     rateSuffix: "/user/day",
     rateLabel: "Avg RPS",
@@ -106,7 +106,7 @@ export const TRAFFIC_BY_FOCUS = Object.freeze({
     audienceLabel: "Avg RPS",
     streamsTitle: "Query split (optional)",
     streamsHelper:
-      "Enter plain avg RPS above — not DAU/MAU. Optionally split read/write below.",
+      "Enter average RPS above. Do not use DAU or MAU here. You can split read and write below.",
     rateColumn: "Avg RPS",
     rateSuffix: "RPS",
     rateLabel: "Avg RPS",
@@ -124,7 +124,7 @@ export const TRAFFIC_BY_FOCUS = Object.freeze({
     audienceLabel: "Avg RPS",
     streamsTitle: "Ops split (optional)",
     streamsHelper:
-      "Enter plain avg RPS above — not DAU/MAU. Optionally split GET/SET below.",
+      "Enter average RPS above. Do not use DAU or MAU here. You can split GET and SET below.",
     rateColumn: "Avg RPS",
     rateSuffix: "RPS",
     rateLabel: "Avg RPS",
@@ -142,7 +142,7 @@ export const TRAFFIC_BY_FOCUS = Object.freeze({
     audienceLabel: "Avg RPS",
     streamsTitle: "Message split (optional)",
     streamsHelper:
-      "Enter plain avg RPS above — not DAU/MAU. Optionally split produce/consume below.",
+      "Enter average RPS above. Do not use DAU or MAU here. You can split produce and consume below.",
     rateColumn: "Avg RPS",
     rateSuffix: "RPS",
     rateLabel: "Avg RPS",
@@ -232,7 +232,7 @@ export function formatTps(tps) {
  */
 export function formatBandwidth(bytesPerSecond) {
   const bps = Number(bytesPerSecond);
-  if (!Number.isFinite(bps) || bps <= 0) return "—";
+  if (!Number.isFinite(bps) || bps <= 0) return "n/a";
   const units = [
     { label: "B/s", div: 1 },
     { label: "KB/s", div: 1024 },
@@ -343,7 +343,7 @@ export function estimateThroughput({
     mode === "rate"
       ? "Direct rate input"
       : audienceMode === "mau"
-        ? `${formatAudience(audienceCount)} MAU ÷ 30 → ~${formatAudience(dailyUsers)} daily`
+        ? `${formatAudience(audienceCount)} MAU / 30 is about ${formatAudience(dailyUsers)} daily`
         : `${formatAudience(dailyUsers)} DAU`;
 
   const summaryLine =

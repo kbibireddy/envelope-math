@@ -17,6 +17,10 @@ import {
   PROJECTION_YEAR_STEP
 } from "../../shared/growth.js";
 import {
+  SAMPLE_FILL_PRESETS,
+  appendJsonLikeChunk
+} from "../../shared/sampleFill.js";
+import {
   STORAGE_UNITS,
   UNIT_VISIBILITY_THRESHOLD,
   formatGridNumber
@@ -106,6 +110,7 @@ export function mountSizingCalculator(root) {
   );
   const compressionMeta = $("compressionMeta", root);
   const compressionChips = $("compressionChips", root);
+  const sampleFillChips = $("sampleFillChips", root);
 
   /** @type {Map<string, HTMLButtonElement>} */
   const compressionButtons = new Map();
@@ -186,6 +191,33 @@ export function mountSizingCalculator(root) {
     }
   });
 
+  // Append random JSON-like filler (~target size). Reset restores the default sample.
+  for (const preset of SAMPLE_FILL_PRESETS) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chip";
+    btn.textContent = preset.label;
+    if (preset.hint) btn.title = preset.hint;
+    btn.addEventListener("click", () => {
+      state.text = appendJsonLikeChunk(state.text, preset.bytes);
+      sampleText.value = state.text;
+      renderResults();
+    });
+    sampleFillChips.appendChild(btn);
+  }
+
+  const resetFillBtn = document.createElement("button");
+  resetFillBtn.type = "button";
+  resetFillBtn.className = "chip chip-quiet";
+  resetFillBtn.textContent = "Reset";
+  resetFillBtn.title = "Restore the default sample payload";
+  resetFillBtn.addEventListener("click", () => {
+    state.text = SIZING_DEFAULTS.sampleText;
+    sampleText.value = state.text;
+    renderResults();
+  });
+  sampleFillChips.appendChild(resetFillBtn);
+
   // Exclusive compression toggles — selecting one clears the others;
   // clicking the active one turns compression off.
   for (const preset of COMPRESSION_PRESETS) {
@@ -233,7 +265,7 @@ export function mountSizingCalculator(root) {
 
     setText(
       charMeta,
-      `${estimate.textLength.toLocaleString("en-US")} characters · ${estimate.rawBytesPerRecord.toLocaleString("en-US")} UTF-8 bytes`
+      `${estimate.textLength.toLocaleString("en-US")} chars · ${estimate.rawBytesPerRecord.toLocaleString("en-US")} B`
     );
     setText(compressionMeta, estimate.compressionLabel);
 

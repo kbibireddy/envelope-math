@@ -40,7 +40,18 @@
           <div class="section sample-block">
             <label class="field-label" for="sampleText">Sample record / payload</label>
             <textarea id="sampleText" spellcheck="false" placeholder='{"userId":"u_1842","event":"checkout"}'></textarea>
-            <p class="helper" id="charMeta">0 characters · 0 UTF-8 bytes</p>
+            <div class="sample-toolbar">
+              <p class="helper" id="charMeta" title="Characters and UTF-8 byte length">0 chars · 0 B</p>
+              <div class="sample-fill">
+                <span class="sample-fill-label" id="sampleFillLabel" title="Append random JSON-like text of about this size">≈ fill</span>
+                <div
+                  class="chips sample-fill-chips"
+                  id="sampleFillChips"
+                  role="group"
+                  aria-labelledby="sampleFillLabel"
+                ></div>
+              </div>
+            </div>
           </div>
 
           <div class="section compact scale-block">

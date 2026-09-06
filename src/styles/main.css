@@ -219,6 +219,52 @@ h3 { font-size: 0.98rem; }
   min-height: 160px;
 }
 
+.sample-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin-top: 6px;
+}
+
+.sample-toolbar .helper {
+  margin: 0;
+  flex: 0 1 auto;
+}
+
+.sample-fill {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sample-fill-label {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+
+.sample-fill-chips {
+  margin-top: 0;
+}
+
+.chip-quiet {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.chip-quiet:hover {
+  color: var(--ink);
+  border-color: var(--ink-soft, var(--line));
+}
+
 .scale-block {
   display: flex;
   flex-direction: column;

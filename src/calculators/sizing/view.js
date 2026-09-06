@@ -17,6 +17,11 @@ import {
   PROJECTION_YEAR_STEP
 } from "../../shared/growth.js";
 import {
+  STORAGE_UNITS,
+  UNIT_VISIBILITY_THRESHOLD,
+  formatGridNumber
+} from "../../shared/storage.js";
+import {
   COMPRESSION_PRESETS,
   GROWTH_PRESETS,
   MULTIPLIER_PRESETS,
@@ -24,38 +29,45 @@ import {
   estimateSizing
 } from "./model.js";
 
+/** Fixed ladder rows shown in the footprint table (B → TB). */
+const FOOTPRINT_UNITS = STORAGE_UNITS.filter((unit) => unit.key !== "PB");
+
 /**
- * Merge per-record and total unit ladders into shared table rows.
- * A unit appears if it is visible on either side.
- * @param {Array<{ key: string, label: string, display: string }>} perUnits
- * @param {Array<{ key: string, label: string, display: string }>} totalUnits
+ * Build aligned B→TB rows for the shared comparison table.
+ * @param {number} perBytes
+ * @param {number} totalBytes
+ * @param {string} perPrimaryKey
+ * @param {string} totalPrimaryKey
  */
-function buildUnitTableRows(perUnits, totalUnits) {
-  /** @type {Map<string, { label: string, perDisplay: string, totalDisplay: string }>} */
-  const byKey = new Map();
+function buildUnitTableRows(
+  perBytes,
+  totalBytes,
+  perPrimaryKey,
+  totalPrimaryKey
+) {
+  const safePer = Number.isFinite(perBytes) && perBytes > 0 ? perBytes : 0;
+  const safeTotal =
+    Number.isFinite(totalBytes) && totalBytes > 0 ? totalBytes : 0;
 
-  for (const unit of perUnits) {
-    byKey.set(unit.key, {
+  return FOOTPRINT_UNITS.map((unit) => {
+    const perValue = safePer / unit.divisor;
+    const totalValue = safeTotal / unit.divisor;
+    const perDim =
+      unit.key !== "B" && (safePer === 0 || perValue < UNIT_VISIBILITY_THRESHOLD);
+    const totalDim =
+      unit.key !== "B" &&
+      (safeTotal === 0 || totalValue < UNIT_VISIBILITY_THRESHOLD);
+
+    return {
       label: unit.label,
-      perDisplay: unit.display,
-      totalDisplay: "—"
-    });
-  }
-
-  for (const unit of totalUnits) {
-    const existing = byKey.get(unit.key);
-    if (existing) {
-      existing.totalDisplay = unit.display;
-    } else {
-      byKey.set(unit.key, {
-        label: unit.label,
-        perDisplay: "—",
-        totalDisplay: unit.display
-      });
-    }
-  }
-
-  return [...byKey.values()];
+      perDisplay: formatGridNumber(perValue),
+      totalDisplay: formatGridNumber(totalValue),
+      perDim,
+      totalDim,
+      perPrimary: unit.key === perPrimaryKey,
+      totalPrimary: unit.key === totalPrimaryKey
+    };
+  });
 }
 
 /**
@@ -240,7 +252,12 @@ export function mountSizingCalculator(root) {
 
     renderUnitTable(
       unitTableBody,
-      buildUnitTableRows(estimate.perRecordUnits, estimate.totalUnits)
+      buildUnitTableRows(
+        estimate.bytesPerRecord,
+        estimate.year0Bytes,
+        estimate.perRecordPrimary.key,
+        estimate.totalPrimary.key
+      )
     );
     renderSizePopover(
       ladderPopoverBody,

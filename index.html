@@ -69,47 +69,53 @@
         <p class="eyebrow">Estimate</p>
         <h2 id="results-title">Storage footprint</h2>
 
-        <div class="compare-head">
-          <div class="compare-card">
-            <p class="compare-label">Single record</p>
-            <p class="compare-value">
-              <span class="num" id="perRecordPrimaryValue">0</span>
-              <span class="unit" id="perRecordPrimaryUnit">bytes</span>
-            </p>
-            <p class="compare-sub" id="perRecordSub">UTF-8 payload size</p>
+        <div class="footprint-panel section compact">
+          <div class="footprint-head">
+            <div class="footprint-corner">
+              <button
+                type="button"
+                class="info-btn"
+                id="ladderInfoBtn"
+                aria-expanded="false"
+                aria-controls="ladderPopover"
+                title="Full unit breakdown"
+              >i</button>
+            </div>
+            <div class="footprint-summary">
+              <p class="compare-label">Single record</p>
+              <p class="compare-value">
+                <span class="num" id="perRecordPrimaryValue">0</span>
+                <span class="unit" id="perRecordPrimaryUnit">bytes</span>
+              </p>
+              <p class="compare-sub" id="perRecordSub">UTF-8 payload size</p>
+            </div>
+            <div class="footprint-summary footprint-summary-accent">
+              <p class="compare-label">With multiplier</p>
+              <p class="compare-value">
+                <span class="num" id="totalPrimaryValue">0</span>
+                <span class="unit" id="totalPrimaryUnit">bytes</span>
+              </p>
+              <p class="compare-sub" id="totalSub">0 records × 0 bytes each</p>
+            </div>
           </div>
-          <div class="compare-card compare-card-accent">
-            <p class="compare-label">With multiplier</p>
-            <p class="compare-value">
-              <span class="num" id="totalPrimaryValue">0</span>
-              <span class="unit" id="totalPrimaryUnit">bytes</span>
-            </p>
-            <p class="compare-sub" id="totalSub">0 records × 0 bytes each</p>
-          </div>
-        </div>
 
-        <div class="section compact unit-table-block">
-          <div class="section-head">
-            <h3>Unit ladder</h3>
-            <button
-              type="button"
-              class="info-btn"
-              id="ladderInfoBtn"
-              aria-expanded="false"
-              aria-controls="ladderPopover"
-              title="Full unit breakdown"
-            >i</button>
-          </div>
-          <table class="unit-table">
-            <thead>
+          <table class="footprint-table">
+            <caption class="sr-only">Size by unit for one record and the scaled total</caption>
+            <colgroup>
+              <col class="unit-col">
+              <col>
+              <col>
+            </colgroup>
+            <thead class="sr-only">
               <tr>
                 <th scope="col">Unit</th>
-                <th scope="col">Per record</th>
-                <th scope="col">Total</th>
+                <th scope="col">Single record</th>
+                <th scope="col">With multiplier</th>
               </tr>
             </thead>
             <tbody id="unitTableBody"></tbody>
           </table>
+
           <div class="size-popover" id="ladderPopover" hidden role="dialog" aria-label="Full size breakdown">
             <div class="size-popover-body" id="ladderPopoverBody"></div>
           </div>
@@ -134,9 +140,10 @@
         </details>
 
         <p class="footnote">
-          Binary units (1 KB = 1024 bytes). Ladder hides values below 0.01.
-          Compression ratios are envelope estimates for JSON/text. Growth compounds
-          on year-0 footprint. Runs in your browser — nothing is uploaded.
+          Binary units (1 KB = 1024 bytes). Tiny ladder cells (&lt; 0.01) are
+          dimmed. Compression ratios are envelope estimates for JSON/text.
+          Growth compounds on year-0 footprint. Runs in your browser — nothing
+          is uploaded.
         </p>
       </section>
     </div>

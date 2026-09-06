@@ -128,13 +128,24 @@ export function bindInfoPopover(button, popover) {
 }
 
 /**
- * Shared B→PB comparison table: Unit | Per record | Total.
+ * Shared comparison table: Unit | Single record | With multiplier.
  * @param {HTMLElement} tbody
- * @param {Array<{ label: string, perDisplay: string, totalDisplay: string }>} rows
+ * @param {Array<{
+ *   label: string,
+ *   perDisplay: string,
+ *   totalDisplay: string,
+ *   perDim?: boolean,
+ *   totalDim?: boolean,
+ *   perPrimary?: boolean,
+ *   totalPrimary?: boolean
+ * }>} rows
  */
 export function renderUnitTable(tbody, rows) {
   const fingerprint = rows
-    .map((r) => `${r.label}:${r.perDisplay}:${r.totalDisplay}`)
+    .map(
+      (r) =>
+        `${r.label}:${r.perDisplay}:${r.totalDisplay}:${r.perDim ? 1 : 0}:${r.totalDim ? 1 : 0}:${r.perPrimary ? 1 : 0}:${r.totalPrimary ? 1 : 0}`
+    )
     .join("|");
   if (tbody.dataset.fingerprint === fingerprint) return;
   tbody.dataset.fingerprint = fingerprint;
@@ -145,15 +156,20 @@ export function renderUnitTable(tbody, rows) {
   for (const row of rows) {
     const tr = document.createElement("tr");
 
-    const unitCell = document.createElement("td");
+    const unitCell = document.createElement("th");
+    unitCell.scope = "row";
     unitCell.className = "unit-name";
     unitCell.textContent = row.label;
 
     const perCell = document.createElement("td");
     perCell.textContent = row.perDisplay;
+    if (row.perDim) perCell.classList.add("is-dim");
+    if (row.perPrimary) perCell.classList.add("is-primary");
 
     const totalCell = document.createElement("td");
     totalCell.textContent = row.totalDisplay;
+    if (row.totalDim) totalCell.classList.add("is-dim");
+    if (row.totalPrimary) totalCell.classList.add("is-primary");
 
     tr.append(unitCell, perCell, totalCell);
     fragment.appendChild(tr);

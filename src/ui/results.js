@@ -128,6 +128,41 @@ export function bindInfoPopover(button, popover) {
 }
 
 /**
+ * Shared B→PB comparison table: Unit | Per record | Total.
+ * @param {HTMLElement} tbody
+ * @param {Array<{ label: string, perDisplay: string, totalDisplay: string }>} rows
+ */
+export function renderUnitTable(tbody, rows) {
+  const fingerprint = rows
+    .map((r) => `${r.label}:${r.perDisplay}:${r.totalDisplay}`)
+    .join("|");
+  if (tbody.dataset.fingerprint === fingerprint) return;
+  tbody.dataset.fingerprint = fingerprint;
+
+  clear(tbody);
+  const fragment = document.createDocumentFragment();
+
+  for (const row of rows) {
+    const tr = document.createElement("tr");
+
+    const unitCell = document.createElement("td");
+    unitCell.className = "unit-name";
+    unitCell.textContent = row.label;
+
+    const perCell = document.createElement("td");
+    perCell.textContent = row.perDisplay;
+
+    const totalCell = document.createElement("td");
+    totalCell.textContent = row.totalDisplay;
+
+    tr.append(unitCell, perCell, totalCell);
+    fragment.appendChild(tr);
+  }
+
+  tbody.appendChild(fragment);
+}
+
+/**
  * Growth projection table.
  * Shows footprint + multiple vs year 0 (no ambiguous progress bars).
  */

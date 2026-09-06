@@ -43,7 +43,7 @@ export const COMPRESSION_PRESETS = Object.freeze([
   }),
   Object.freeze({
     id: "zstd-1",
-    label: "zstd(1)",
+    label: "zst(1)",
     ratio: 0.3,
     hint: "zstd level 1 — fast, modest ratio"
   }),

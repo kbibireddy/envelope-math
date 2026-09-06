@@ -10,7 +10,7 @@ import {
   bindInfoPopover,
   renderProjectionTable,
   renderSizePopover,
-  renderUnitGrid
+  renderUnitTable
 } from "../../ui/results.js";
 import {
   MAX_PROJECTION_YEARS,
@@ -23,6 +23,40 @@ import {
   SIZING_DEFAULTS,
   estimateSizing
 } from "./model.js";
+
+/**
+ * Merge per-record and total unit ladders into shared table rows.
+ * A unit appears if it is visible on either side.
+ * @param {Array<{ key: string, label: string, display: string }>} perUnits
+ * @param {Array<{ key: string, label: string, display: string }>} totalUnits
+ */
+function buildUnitTableRows(perUnits, totalUnits) {
+  /** @type {Map<string, { label: string, perDisplay: string, totalDisplay: string }>} */
+  const byKey = new Map();
+
+  for (const unit of perUnits) {
+    byKey.set(unit.key, {
+      label: unit.label,
+      perDisplay: unit.display,
+      totalDisplay: "—"
+    });
+  }
+
+  for (const unit of totalUnits) {
+    const existing = byKey.get(unit.key);
+    if (existing) {
+      existing.totalDisplay = unit.display;
+    } else {
+      byKey.set(unit.key, {
+        label: unit.label,
+        perDisplay: "—",
+        totalDisplay: unit.display
+      });
+    }
+  }
+
+  return [...byKey.values()];
+}
 
 /**
  * Mount the sizing calculator into a root that already contains sizing markup.
@@ -44,13 +78,13 @@ export function mountSizingCalculator(root) {
   const perRecordPrimaryValue = $("perRecordPrimaryValue", root);
   const perRecordPrimaryUnit = $("perRecordPrimaryUnit", root);
   const perRecordSub = $("perRecordSub", root);
-  const perRecordUnits = $("perRecordUnits", root);
-  const perRecordPopoverBody = $("perRecordPopoverBody", root);
   const totalPrimaryValue = $("totalPrimaryValue", root);
   const totalPrimaryUnit = $("totalPrimaryUnit", root);
   const totalSub = $("totalSub", root);
-  const totalUnits = $("totalUnits", root);
-  const totalPopoverBody = $("totalPopoverBody", root);
+  const unitTableBody = /** @type {HTMLTableSectionElement} */ (
+    $("unitTableBody", root)
+  );
+  const ladderPopoverBody = $("ladderPopoverBody", root);
   const projectionHelper = $("projectionHelper", root);
   const projectionBody = /** @type {HTMLTableSectionElement} */ (
     $("projectionBody", root)
@@ -65,12 +99,8 @@ export function mountSizingCalculator(root) {
   const compressionButtons = new Map();
 
   bindInfoPopover(
-    /** @type {HTMLButtonElement} */ ($("perRecordInfoBtn", root)),
-    $("perRecordPopover", root)
-  );
-  bindInfoPopover(
-    /** @type {HTMLButtonElement} */ ($("totalInfoBtn", root)),
-    $("totalPopover", root)
+    /** @type {HTMLButtonElement} */ ($("ladderInfoBtn", root)),
+    $("ladderPopover", root)
   );
 
   const multiplierChips = createPresetChips({
@@ -151,6 +181,7 @@ export function mountSizingCalculator(root) {
     btn.type = "button";
     btn.className = "chip";
     btn.textContent = preset.label;
+    btn.setAttribute("aria-pressed", "false");
     if (preset.hint) btn.title = preset.hint;
     btn.addEventListener("click", () => {
       state.compressionId =
@@ -164,7 +195,9 @@ export function mountSizingCalculator(root) {
 
   function syncCompressionChips() {
     for (const [id, btn] of compressionButtons) {
-      btn.classList.toggle("active", state.compressionId === id);
+      const active = state.compressionId === id;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
     }
   }
 
@@ -197,24 +230,24 @@ export function mountSizingCalculator(root) {
     setText(
       perRecordSub,
       estimate.compressionId
-        ? `UTF-8 payload after ${estimate.compressionId}`
+        ? `After ${estimate.compressionLabel.split(" · ")[0]}`
         : "UTF-8 payload size"
-    );
-    renderUnitGrid(perRecordUnits, estimate.perRecordUnits);
-    renderSizePopover(
-      perRecordPopoverBody,
-      estimate.perRecordDetails,
-      "All units · 2 decimal places max"
     );
 
     setAnimatedText(totalPrimaryValue, estimate.totalPrimary.display);
     setText(totalPrimaryUnit, estimate.totalPrimary.label);
     setText(totalSub, estimate.summaryLine);
-    renderUnitGrid(totalUnits, estimate.totalUnits);
+
+    renderUnitTable(
+      unitTableBody,
+      buildUnitTableRows(estimate.perRecordUnits, estimate.totalUnits)
+    );
     renderSizePopover(
-      totalPopoverBody,
+      ladderPopoverBody,
       estimate.totalDetails,
-      "All units · 2 decimal places max"
+      estimate.compressionId
+        ? `Total after ${estimate.compressionLabel.split(" · ")[0]} · 2 decimal places max`
+        : "Total · all units · 2 decimal places max"
     );
 
     setText(

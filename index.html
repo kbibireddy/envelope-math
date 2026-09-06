@@ -69,53 +69,49 @@
         <p class="eyebrow">Estimate</p>
         <h2 id="results-title">Storage footprint</h2>
 
-        <div class="section compact size-block">
-          <div class="section-head">
-            <h3>Single record</h3>
-            <button
-              type="button"
-              class="info-btn"
-              id="perRecordInfoBtn"
-              aria-expanded="false"
-              aria-controls="perRecordPopover"
-              title="Full unit breakdown"
-            >i</button>
-          </div>
-          <div class="size-primary">
-            <span class="value" id="perRecordPrimary">
+        <div class="compare-head">
+          <div class="compare-card">
+            <p class="compare-label">Single record</p>
+            <p class="compare-value">
               <span class="num" id="perRecordPrimaryValue">0</span>
               <span class="unit" id="perRecordPrimaryUnit">bytes</span>
-            </span>
-            <span class="sub" id="perRecordSub">UTF-8 payload size</span>
+            </p>
+            <p class="compare-sub" id="perRecordSub">UTF-8 payload size</p>
           </div>
-          <div class="unit-grid" id="perRecordUnits"></div>
-          <div class="size-popover" id="perRecordPopover" hidden role="dialog" aria-label="Single record full size">
-            <div class="size-popover-body" id="perRecordPopoverBody"></div>
+          <div class="compare-card compare-card-accent">
+            <p class="compare-label">With multiplier</p>
+            <p class="compare-value">
+              <span class="num" id="totalPrimaryValue">0</span>
+              <span class="unit" id="totalPrimaryUnit">bytes</span>
+            </p>
+            <p class="compare-sub" id="totalSub">0 records × 0 bytes each</p>
           </div>
         </div>
 
-        <div class="section compact size-block">
+        <div class="section compact unit-table-block">
           <div class="section-head">
-            <h3>With multiplier</h3>
+            <h3>Unit ladder</h3>
             <button
               type="button"
               class="info-btn"
-              id="totalInfoBtn"
+              id="ladderInfoBtn"
               aria-expanded="false"
-              aria-controls="totalPopover"
+              aria-controls="ladderPopover"
               title="Full unit breakdown"
             >i</button>
           </div>
-          <div class="size-primary">
-            <span class="value" id="totalPrimary">
-              <span class="num" id="totalPrimaryValue">0</span>
-              <span class="unit" id="totalPrimaryUnit">bytes</span>
-            </span>
-            <span class="sub" id="totalSub">0 records × 0 bytes each</span>
-          </div>
-          <div class="unit-grid" id="totalUnits"></div>
-          <div class="size-popover" id="totalPopover" hidden role="dialog" aria-label="Scaled total full size">
-            <div class="size-popover-body" id="totalPopoverBody"></div>
+          <table class="unit-table">
+            <thead>
+              <tr>
+                <th scope="col">Unit</th>
+                <th scope="col">Per record</th>
+                <th scope="col">Total</th>
+              </tr>
+            </thead>
+            <tbody id="unitTableBody"></tbody>
+          </table>
+          <div class="size-popover" id="ladderPopover" hidden role="dialog" aria-label="Full size breakdown">
+            <div class="size-popover-body" id="ladderPopoverBody"></div>
           </div>
         </div>
 
@@ -138,9 +134,9 @@
         </details>
 
         <p class="footnote">
-          Binary units (1 KB = 1024 bytes). Main view hides units below 0.01 and
-          shortens values above 9999 with K/M/B. Info popovers show the full ladder.
-          Growth compounds on year-0 footprint. Runs in your browser — nothing is uploaded.
+          Binary units (1 KB = 1024 bytes). Ladder hides values below 0.01.
+          Compression ratios are envelope estimates for JSON/text. Growth compounds
+          on year-0 footprint. Runs in your browser — nothing is uploaded.
         </p>
       </section>
     </div>

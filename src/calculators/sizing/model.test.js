@@ -75,6 +75,10 @@ describe("calculator registry", () => {
     expect(getCalculator("throughput")?.mount).toEqual(expect.any(Function));
     expect(getCalculator("missing")).toBeNull();
     expect(getCalculator("cost")).toBeNull();
-    expect(CALCULATORS.map((c) => c.id)).toEqual(["sizing", "throughput"]);
+    expect(CALCULATORS.map((c) => c.id)).toEqual([
+      "sizing",
+      "throughput",
+      "reference"
+    ]);
   });
 });

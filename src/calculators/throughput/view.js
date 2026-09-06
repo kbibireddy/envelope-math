@@ -73,7 +73,8 @@ export function mountThroughputCalculator(root) {
   const bandwidthPeak = $("bandwidthPeak", root);
   const nodesNeeded = $("nodesNeeded", root);
   const nodesNeededLabel = $("nodesNeededLabel", root);
-  const throughputFootnote = $("throughputFootnote", root);
+  const footnoteTraffic = $("footnoteTraffic", root);
+  const footnotePeak = $("footnotePeak", root);
   const payloadInput = /** @type {HTMLInputElement} */ ($("payloadBytes", root));
   const nodeCapacityInput = /** @type {HTMLInputElement} */ (
     $("nodeCapacityTps", root)
@@ -481,16 +482,18 @@ export function mountThroughputCalculator(root) {
       setText(streamRateColumn, traffic.rateColumn);
       setText(capacityIntro, `Systems for ${focus.label}.`);
       setText(
-        throughputFootnote,
+        footnoteTraffic,
         traffic.mode === "audience"
-          ? "Avg TPS = daily users × actions/user/day ÷ 86,400. Peak = avg × peak multiplier. DAU/MAU is for app servers / load balancers. Runs in your browser."
-          : `Avg TPS comes from the ${traffic.rateSuffix} rates you enter. Peak = avg × peak multiplier. Use this for ${focus.label}, not end-user DAU. Runs in your browser.`
+          ? "DAU/MAU × actions/user/day ÷ 86,400 → avg TPS (app / LB)"
+          : `${focus.label}: enter ${traffic.rateSuffix} directly (not end-user DAU)`
       );
+      setText(footnotePeak, "avg TPS × peak multiplier");
     } else {
       setText(
-        throughputFootnote,
-        "Pick an investigation to begin. App servers use DAU/MAU × actions/user/day. Databases, cache, and queues use direct rate inputs (RPS / ops/s / msg/s). Runs in your browser."
+        footnoteTraffic,
+        "App: DAU/MAU × actions/day. DB/cache/queue: RPS / ops/s / msg/s"
       );
+      setText(footnotePeak, "avg TPS × peak multiplier");
     }
 
     const estimate = estimateThroughput({

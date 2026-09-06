@@ -130,12 +130,16 @@
           </button>
         </details>
 
-        <p class="footnote">
-          Binary units (1 KB = 1024 bytes). Tiny ladder cells (&lt; 0.01) are
-          dimmed. Compression size and decode speeds are envelope estimates for
-          JSON/text (not codec benchmarks). Growth compounds on year-0 footprint.
-          Runs in your browser — nothing is uploaded.
-        </p>
+        <table class="note-table">
+          <caption class="sr-only">Sizing calculator notes</caption>
+          <tbody>
+            <tr><th scope="row">Units</th><td>Binary — 1 KB = 1024 bytes</td></tr>
+            <tr><th scope="row">Ladder</th><td>Values &lt; 0.01 are dimmed</td></tr>
+            <tr><th scope="row">Compression</th><td>Envelope for JSON/text — not codec benchmarks</td></tr>
+            <tr><th scope="row">Growth</th><td>Compounds on year-0 footprint</td></tr>
+            <tr><th scope="row">Privacy</th><td>Runs in-browser — nothing uploaded</td></tr>
+          </tbody>
+        </table>
       </section>
     </div>
   </template>
@@ -219,10 +223,27 @@
           <p class="helper" id="capacityMeta">Pick a system to size this layer</p>
           <div class="capacity-guide" id="capacityGuide" hidden>
             <p class="capacity-guide-title" id="capacityGuideTitle"></p>
-            <p class="capacity-guide-limits" id="capacityGuideLimits"></p>
-            <p class="capacity-guide-connections" id="capacityGuideConnections"></p>
-            <p class="capacity-guide-tip" id="capacityGuideTip"></p>
-            <p class="capacity-guide-assess" id="capacityGuideAssess"></p>
+            <table class="note-table capacity-guide-table">
+              <caption class="sr-only">Selected system capacity notes</caption>
+              <tbody>
+                <tr>
+                  <th scope="row">Limits</th>
+                  <td id="capacityGuideLimits"></td>
+                </tr>
+                <tr>
+                  <th scope="row">Connections</th>
+                  <td id="capacityGuideConnections"></td>
+                </tr>
+                <tr>
+                  <th scope="row">Tip</th>
+                  <td id="capacityGuideTip"></td>
+                </tr>
+                <tr>
+                  <th scope="row">Your TPS/unit</th>
+                  <td class="capacity-guide-assess" id="capacityGuideAssess"></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -283,11 +304,147 @@
           </div>
         </div>
 
-        <p class="footnote" id="throughputFootnote">
-          Pick a layer to begin. App servers use DAU/MAU × actions/user/day.
-          Databases, cache, and queues use direct rates (RPS / ops/s / msg/s).
-          Runs in your browser.
+        <table class="note-table" id="throughputFootnote">
+          <caption class="sr-only">Throughput calculator notes</caption>
+          <tbody>
+            <tr><th scope="row">Traffic math</th><td id="footnoteTraffic">Pick a layer to begin</td></tr>
+            <tr><th scope="row">Peak</th><td id="footnotePeak">avg TPS × peak multiplier</td></tr>
+            <tr><th scope="row">Privacy</th><td>Runs in-browser — nothing uploaded</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </template>
+
+
+  <template id="tpl-reference">
+    <div class="layout reference-layout">
+      <section class="panel results reference-panel" aria-labelledby="reference-title">
+        <p class="eyebrow">Cheat sheet</p>
+        <h2 id="reference-title">Back-of-the-envelope reference</h2>
+        <p class="helper reference-lede">
+          Numbers every systems interview uses — verified against
+          <a href="https://bytebytego.com/courses/system-design-interview/back-of-the-envelope-estimation" rel="noopener noreferrer" target="_blank">ByteByteGo’s estimation chapter</a>
+          (Dean / High Scalability lineage). Order-of-magnitude aids, not lab benchmarks.
         </p>
+
+        <div class="reference-grid">
+          <section class="reference-card" aria-labelledby="powerTitle">
+            <h3 id="powerTitle">Power of two</h3>
+            <table class="note-table">
+              <thead>
+                <tr>
+                  <th scope="col">Power</th>
+                  <th scope="col">≈ value</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Short</th>
+                </tr>
+              </thead>
+              <tbody id="powerOfTwoBody"></tbody>
+            </table>
+          </section>
+
+          <section class="reference-card" aria-labelledby="timeTitle">
+            <h3 id="timeTitle">Time units</h3>
+            <table class="note-table">
+              <thead>
+                <tr>
+                  <th scope="col">Unit</th>
+                  <th scope="col">Equals</th>
+                </tr>
+              </thead>
+              <tbody id="timeUnitsBody"></tbody>
+            </table>
+          </section>
+
+          <section class="reference-card reference-card-wide" aria-labelledby="latencyTitle">
+            <h3 id="latencyTitle">Latency numbers</h3>
+            <table class="note-table">
+              <thead>
+                <tr>
+                  <th scope="col">Operation</th>
+                  <th scope="col">Time</th>
+                </tr>
+              </thead>
+              <tbody id="latencyBody"></tbody>
+            </table>
+            <table class="note-table reference-subtable">
+              <caption class="sr-only">Latency takeaways</caption>
+              <thead>
+                <tr><th scope="col">Takeaway</th></tr>
+              </thead>
+              <tbody id="latencyTakeawaysBody"></tbody>
+            </table>
+          </section>
+
+          <section class="reference-card reference-card-wide" aria-labelledby="availTitle">
+            <h3 id="availTitle">Availability (nines)</h3>
+            <table class="note-table">
+              <thead>
+                <tr>
+                  <th scope="col">Availability</th>
+                  <th scope="col">/ day</th>
+                  <th scope="col">/ month</th>
+                  <th scope="col">/ year</th>
+                </tr>
+              </thead>
+              <tbody id="availabilityBody"></tbody>
+            </table>
+          </section>
+
+          <section class="reference-card reference-card-wide" aria-labelledby="formulaTitle">
+            <h3 id="formulaTitle">Common formulas</h3>
+            <table class="note-table">
+              <thead>
+                <tr>
+                  <th scope="col">Estimate</th>
+                  <th scope="col">Formula</th>
+                </tr>
+              </thead>
+              <tbody id="formulasBody"></tbody>
+            </table>
+          </section>
+
+          <section class="reference-card" aria-labelledby="tipsTitle">
+            <h3 id="tipsTitle">Estimation tips</h3>
+            <table class="note-table">
+              <thead>
+                <tr>
+                  <th scope="col">Tip</th>
+                  <th scope="col">Why</th>
+                </tr>
+              </thead>
+              <tbody id="tipsBody"></tbody>
+            </table>
+          </section>
+
+          <section class="reference-card" aria-labelledby="exampleTitle">
+            <h3 id="exampleTitle">Worked example (Twitter-style)</h3>
+            <table class="note-table">
+              <thead>
+                <tr>
+                  <th scope="col">Step</th>
+                  <th scope="col">Envelope</th>
+                </tr>
+              </thead>
+              <tbody id="workedExampleBody"></tbody>
+            </table>
+          </section>
+        </div>
+
+        <table class="note-table reference-source">
+          <caption class="sr-only">Sources</caption>
+          <tbody>
+            <tr>
+              <th scope="row">Primary</th>
+              <td>ByteByteGo — Back-of-the-envelope estimation</td>
+            </tr>
+            <tr>
+              <th scope="row">Also</th>
+              <td>Jeff Dean / High Scalability · interactive latency numbers (Colin Scott)</td>
+            </tr>
+          </tbody>
+        </table>
       </section>
     </div>
   </template>

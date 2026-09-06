@@ -673,17 +673,19 @@ input:focus {
 
 .footprint-head {
   display: grid;
-  grid-template-columns: minmax(4.25rem, 0.22fr) minmax(0, 1fr) minmax(0, 1fr);
-  gap: 0 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 16px;
   align-items: end;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--line);
+  position: relative;
 }
 
-.footprint-corner {
-  display: flex;
-  align-items: flex-start;
-  padding-bottom: 2px;
+.footprint-info {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
 }
 
 .footprint-summary {
@@ -742,10 +744,6 @@ input:focus {
   font-family: var(--mono);
 }
 
-.footprint-table col.unit-col {
-  width: 22%;
-}
-
 .footprint-table thead th {
   padding: 10px 8px 6px;
   color: var(--muted);
@@ -757,7 +755,6 @@ input:focus {
   border-bottom: 0;
 }
 
-.footprint-table tbody th,
 .footprint-table tbody td {
   padding: 11px 8px;
   border-bottom: 1px solid var(--line);
@@ -766,12 +763,12 @@ input:focus {
   color: var(--ink);
 }
 
-.footprint-table tbody th.unit-name {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.footprint-table .unit-suffix {
+  margin-left: 0.2em;
   color: var(--muted);
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .footprint-table tbody td.is-primary {
@@ -779,11 +776,19 @@ input:focus {
   color: var(--ink);
 }
 
+.footprint-table tbody td.is-primary .unit-suffix {
+  color: var(--muted);
+  font-weight: 700;
+}
+
 .footprint-table tbody td.is-dim {
   color: rgba(71, 85, 105, 0.55);
 }
 
-.footprint-table tbody tr:last-child th,
+.footprint-table tbody td.is-dim .unit-suffix {
+  color: inherit;
+}
+
 .footprint-table tbody tr:last-child td {
   border-bottom: 0;
 }

@@ -82,16 +82,14 @@
 
         <div class="footprint-panel section compact">
           <div class="footprint-head">
-            <div class="footprint-corner">
-              <button
-                type="button"
-                class="info-btn"
-                id="ladderInfoBtn"
-                aria-expanded="false"
-                aria-controls="ladderPopover"
-                title="Full unit breakdown"
-              >i</button>
-            </div>
+            <button
+              type="button"
+              class="info-btn footprint-info"
+              id="ladderInfoBtn"
+              aria-expanded="false"
+              aria-controls="ladderPopover"
+              title="Full unit breakdown"
+            >i</button>
             <div class="footprint-summary">
               <p class="compare-label">Single record</p>
               <p class="compare-value">
@@ -112,14 +110,8 @@
 
           <table class="footprint-table">
             <caption class="sr-only">Size by unit for one record and the scaled total</caption>
-            <colgroup>
-              <col class="unit-col">
-              <col>
-              <col>
-            </colgroup>
             <thead class="sr-only">
               <tr>
-                <th scope="col">Unit</th>
                 <th scope="col">Single record</th>
                 <th scope="col">With multiplier</th>
               </tr>

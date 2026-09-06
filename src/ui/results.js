@@ -128,7 +128,28 @@ export function bindInfoPopover(button, popover) {
 }
 
 /**
- * Shared comparison table: Unit | Single record | With multiplier.
+ * @param {HTMLTableCellElement} cell
+ * @param {string} display
+ * @param {string} unitLabel
+ * @param {{ dim?: boolean, primary?: boolean }} flags
+ */
+function fillSizeCell(cell, display, unitLabel, flags) {
+  const qty = document.createElement("span");
+  qty.className = "qty";
+  qty.textContent = display;
+
+  const unit = document.createElement("span");
+  unit.className = "unit-suffix";
+  unit.textContent = ` ${unitLabel}`;
+
+  cell.append(qty, unit);
+  if (flags.dim) cell.classList.add("is-dim");
+  if (flags.primary) cell.classList.add("is-primary");
+}
+
+/**
+ * Shared comparison table: Single record | With multiplier.
+ * Each cell includes its unit label (e.g. "104 bytes") so values read alone.
  * @param {HTMLElement} tbody
  * @param {Array<{
  *   label: string,
@@ -156,22 +177,19 @@ export function renderUnitTable(tbody, rows) {
   for (const row of rows) {
     const tr = document.createElement("tr");
 
-    const unitCell = document.createElement("th");
-    unitCell.scope = "row";
-    unitCell.className = "unit-name";
-    unitCell.textContent = row.label;
-
     const perCell = document.createElement("td");
-    perCell.textContent = row.perDisplay;
-    if (row.perDim) perCell.classList.add("is-dim");
-    if (row.perPrimary) perCell.classList.add("is-primary");
+    fillSizeCell(perCell, row.perDisplay, row.label, {
+      dim: row.perDim,
+      primary: row.perPrimary
+    });
 
     const totalCell = document.createElement("td");
-    totalCell.textContent = row.totalDisplay;
-    if (row.totalDim) totalCell.classList.add("is-dim");
-    if (row.totalPrimary) totalCell.classList.add("is-primary");
+    fillSizeCell(totalCell, row.totalDisplay, row.label, {
+      dim: row.totalDim,
+      primary: row.totalPrimary
+    });
 
-    tr.append(unitCell, perCell, totalCell);
+    tr.append(perCell, totalCell);
     fragment.appendChild(tr);
   }
 

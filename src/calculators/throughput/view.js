@@ -6,7 +6,6 @@ import {
   formatGrouped
 } from "../../ui/presets.js";
 import {
-  ACTIVE_DAYS_PRESETS,
   AUDIENCE_PRESETS,
   PEAK_PRESETS,
   STREAM_TEMPLATES,
@@ -31,7 +30,6 @@ export function mountThroughputCalculator(root) {
   const state = {
     audienceMode: /** @type {'dau' | 'mau'} */ (THROUGHPUT_DEFAULTS.audienceMode),
     audienceCount: THROUGHPUT_DEFAULTS.audienceCount,
-    activeDaysPerMonth: THROUGHPUT_DEFAULTS.activeDaysPerMonth,
     peakMultiplier: THROUGHPUT_DEFAULTS.peakMultiplier,
     payloadBytes: THROUGHPUT_DEFAULTS.payloadBytes,
     nodeCapacityTps: THROUGHPUT_DEFAULTS.nodeCapacityTps,
@@ -39,13 +37,11 @@ export function mountThroughputCalculator(root) {
     capacityProfileId: /** @type {string | null} */ (null),
     customAudience: false,
     customPeak: false,
-    customActiveDays: false,
     streams: THROUGHPUT_DEFAULTS.streams.map((stream) => ({ ...stream }))
   };
 
   const audienceMeta = $("audienceMeta", root);
   const peakMeta = $("peakMeta", root);
-  const mauOnly = $("mauOnly", root);
   const streamList = $("streamList", root);
   const streamTemplates = $("streamTemplates", root);
   const streamTableBody = /** @type {HTMLTableSectionElement} */ (
@@ -157,42 +153,6 @@ export function mountThroughputCalculator(root) {
       state.customPeak = true;
       peakChips.sync();
       customPeakChip.sync();
-      render();
-    }
-  });
-
-  const activeDaysChips = createPresetChips({
-    container: $("activeDaysChips", root),
-    presets: ACTIVE_DAYS_PRESETS,
-    getValue: () => state.activeDaysPerMonth,
-    isCustom: () => state.customActiveDays,
-    onSelect: (preset) => {
-      state.activeDaysPerMonth = preset.value;
-      state.customActiveDays = false;
-      customActiveDaysChip.clear();
-      activeDaysChips.sync();
-      customActiveDaysChip.sync();
-      render();
-    }
-  });
-
-  const customActiveDaysChip = bindCustomValueChip({
-    container: $("activeDaysChips", root),
-    idPrefix: "customActiveDays",
-    triggerLabel: "Enter…",
-    placeholder: "Days",
-    integer: true,
-    min: 1,
-    max: 31,
-    maxError: "Use 1–31 active days per month.",
-    isActive: () => state.customActiveDays,
-    getDisplayValue: () =>
-      state.customActiveDays ? state.activeDaysPerMonth : null,
-    onApply: (value) => {
-      state.activeDaysPerMonth = value;
-      state.customActiveDays = true;
-      activeDaysChips.sync();
-      customActiveDaysChip.sync();
       render();
     }
   });
@@ -331,7 +291,6 @@ export function mountThroughputCalculator(root) {
       btn.classList.toggle("active", active);
       btn.setAttribute("aria-pressed", active ? "true" : "false");
     }
-    mauOnly.hidden = state.audienceMode !== "mau";
   }
 
   function renderStreamEditor() {
@@ -446,7 +405,6 @@ export function mountThroughputCalculator(root) {
     const estimate = estimateThroughput({
       audienceMode: state.audienceMode,
       audienceCount: state.audienceCount,
-      activeDaysPerMonth: state.activeDaysPerMonth,
       peakMultiplier: state.peakMultiplier,
       payloadBytes: state.payloadBytes,
       nodeCapacityTps: state.nodeCapacityTps,

@@ -28,13 +28,6 @@ export const PEAK_PRESETS = Object.freeze([
   Object.freeze({ label: "10×", value: 10, hint: "Viral / flash sale" })
 ]);
 
-/** @type {ReadonlyArray<{ label: string, value: number, hint?: string }>} */
-export const ACTIVE_DAYS_PRESETS = Object.freeze([
-  Object.freeze({ label: "20d", value: 20, hint: "Light monthly engagement" }),
-  Object.freeze({ label: "25d", value: 25 }),
-  Object.freeze({ label: "30d", value: 30, hint: "DAU ≈ MAU ÷ 30" })
-]);
-
 /** Quick-add stream templates. */
 export const STREAM_TEMPLATES = Object.freeze([
   Object.freeze({ name: "Read", actionsPerUserPerDay: 40 }),
@@ -216,7 +209,7 @@ export function estimateThroughput({
 
   const audienceLabel =
     audienceMode === "mau"
-      ? `${formatAudience(audienceCount)} MAU → ~${formatAudience(dailyUsers)} daily`
+      ? `${formatAudience(audienceCount)} MAU ÷ 30 → ~${formatAudience(dailyUsers)} daily`
       : `${formatAudience(dailyUsers)} DAU`;
 
   return {

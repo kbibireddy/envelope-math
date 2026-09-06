@@ -27,7 +27,7 @@ Interactive back-of-the-envelope calculators for storage sizing and capacity pla
 | Topic | Detail |
 | --- | --- |
 | Scope | One layer at a time: app servers, databases, cache, or queues |
-| App servers | DAU/MAU + actions/user/day (edge / load-balancer traffic) |
+| App servers | DAU or MAU plus actions per user per day (edge and load-balancer traffic) |
 | Internal systems | Direct average RPS |
 | Peak | Avg × peak multiplier |
 | Capacity | Match envelopes; optional payload to bandwidth and units @ peak |

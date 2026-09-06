@@ -51,7 +51,7 @@ export const PEAK_PRESETS = Object.freeze([
   Object.freeze({ label: "10×", value: 10, hint: "Viral / flash sale" })
 ]);
 
-/** App-server stream templates (actions/user/day). */
+/** App-server stream templates (actions per user per day). */
 export const STREAM_TEMPLATES = Object.freeze([
   Object.freeze({ name: "Read", actionsPerUserPerDay: 40 }),
   Object.freeze({ name: "Write", actionsPerUserPerDay: 4 }),
@@ -349,7 +349,7 @@ export function estimateThroughput({
   const summaryLine =
     mode === "rate"
       ? `${formatTps(totalAvgTps)} avg RPS · peak ${peak}×`
-      : `${audienceLabel} · ${totalActionsPerUserPerDay} actions/user/day · peak ${peak}×`;
+      : `${audienceLabel} · ${totalActionsPerUserPerDay} actions per user per day · peak ${peak}×`;
 
   return {
     trafficMode: mode,

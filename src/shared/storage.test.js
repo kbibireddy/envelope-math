@@ -90,10 +90,11 @@ describe("formatting helpers", () => {
     expect(formatCompactNumber(2_000_000_000)).toBe("2B");
   });
 
-  it("limits detail numbers to 2 decimal places", () => {
+  it("limits detail numbers to 2 decimal places and adds commas", () => {
     expect(formatDetailNumber(0.1015625)).toBe("0.1");
     expect(formatDetailNumber(99.182)).toBe("99.18");
     expect(formatDetailNumber(104)).toBe("104");
+    expect(formatDetailNumber(104_000_000)).toBe("104,000,000");
   });
 
   it("formats unit values and counts", () => {

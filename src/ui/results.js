@@ -128,7 +128,8 @@ export function bindInfoPopover(button, popover) {
 }
 
 /**
- * Growth projection table with relative bar widths.
+ * Growth projection table.
+ * Shows footprint + multiple vs year 0 (no ambiguous progress bars).
  */
 export function renderProjectionTable(tbody, projections) {
   const fingerprint = projections
@@ -139,7 +140,6 @@ export function renderProjectionTable(tbody, projections) {
 
   clear(tbody);
   const year0 = projections[0]?.bytes ?? 0;
-  const maxBytes = projections[projections.length - 1]?.bytes ?? 0;
   const fragment = document.createDocumentFragment();
 
   for (const row of projections) {
@@ -147,25 +147,16 @@ export function renderProjectionTable(tbody, projections) {
 
     const yearCell = document.createElement("td");
     yearCell.className = "year";
-    yearCell.textContent = `Y${row.year}`;
+    yearCell.textContent = row.year === 0 ? "Now" : `Year ${row.year}`;
 
     const footprintCell = document.createElement("td");
-    const strong = document.createElement("strong");
-    strong.textContent = `${row.primary.display} ${row.primary.label}`;
-
-    const bar = document.createElement("span");
-    bar.className = "growth-bar";
-    bar.setAttribute("aria-hidden", "true");
-    const fill = document.createElement("span");
-    const width =
-      maxBytes === 0 ? 0 : Math.max(4, (row.bytes / maxBytes) * 100);
-    fill.style.width = `${width}%`;
-    bar.appendChild(fill);
-    footprintCell.append(strong, bar);
+    footprintCell.textContent = `${row.primary.display} ${row.primary.label}`;
 
     const multipleCell = document.createElement("td");
     if (year0 === 0) {
       multipleCell.textContent = "—";
+    } else if (row.year === 0) {
+      multipleCell.textContent = "1×";
     } else {
       multipleCell.textContent = `${(row.bytes / year0).toLocaleString("en-US", {
         maximumFractionDigits: 2

@@ -13,6 +13,10 @@ import {
   renderUnitGrid
 } from "../../ui/results.js";
 import {
+  MAX_PROJECTION_YEARS,
+  PROJECTION_YEAR_STEP
+} from "../../shared/growth.js";
+import {
   GROWTH_PRESETS,
   MULTIPLIER_PRESETS,
   SIZING_DEFAULTS,
@@ -28,6 +32,7 @@ export function mountSizingCalculator(root) {
     text: SIZING_DEFAULTS.sampleText,
     recordCount: SIZING_DEFAULTS.recordCount,
     growthPercent: SIZING_DEFAULTS.growthPercent,
+    projectionYears: SIZING_DEFAULTS.years,
     customMultiplier: false,
     customGrowth: false
   };
@@ -47,6 +52,9 @@ export function mountSizingCalculator(root) {
   const projectionHelper = $("projectionHelper", root);
   const projectionBody = /** @type {HTMLTableSectionElement} */ (
     $("projectionBody", root)
+  );
+  const extendProjection = /** @type {HTMLButtonElement} */ (
+    $("extendProjection", root)
   );
 
   bindInfoPopover(
@@ -129,12 +137,21 @@ export function mountSizingCalculator(root) {
     }
   });
 
+  extendProjection.addEventListener("click", () => {
+    if (state.projectionYears >= MAX_PROJECTION_YEARS) return;
+    state.projectionYears = Math.min(
+      MAX_PROJECTION_YEARS,
+      state.projectionYears + PROJECTION_YEAR_STEP
+    );
+    renderResults();
+  });
+
   function renderResults() {
     const estimate = estimateSizing({
       text: state.text,
       recordCount: state.recordCount,
       growthPercent: state.growthPercent,
-      years: SIZING_DEFAULTS.years
+      years: state.projectionYears
     });
 
     setText(
@@ -164,9 +181,15 @@ export function mountSizingCalculator(root) {
 
     setText(
       projectionHelper,
-      `${estimate.growthPercent}% YoY · ${estimate.projections.length - 1} years`
+      `${estimate.growthPercent}% YoY · showing ${estimate.projections.length - 1} of ${MAX_PROJECTION_YEARS} years`
     );
     renderProjectionTable(projectionBody, estimate.projections);
+
+    const canExtend = state.projectionYears < MAX_PROJECTION_YEARS;
+    extendProjection.hidden = !canExtend;
+    extendProjection.textContent = canExtend
+      ? `+${PROJECTION_YEAR_STEP} years`
+      : "Max 50 years";
   }
 
   const onInput = (event) => {

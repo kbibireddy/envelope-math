@@ -244,19 +244,20 @@ h3 { font-size: 0.98rem; }
 
 @media (min-width: 720px) {
   .inputs-row {
-    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
-    gap: 18px;
+    grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+    gap: 28px;
   }
 
   .scale-block {
-    padding-left: 16px;
+    padding-left: 24px;
+    margin-left: 4px;
     border-left: 1px solid var(--line);
   }
 
   /* Side-by-side Records | YoY keeps the right column short */
   .controls .scale-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
+    gap: 18px;
   }
 }
 
@@ -591,6 +592,30 @@ input:focus {
 
 .projection-block[open] summary::after {
   content: "▾";
+}
+
+.extend-btn {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 12px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  color: var(--accent);
+  background: #fff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  font-family: var(--mono);
+}
+
+.extend-btn:hover {
+  border-color: var(--accent);
+  background: rgba(14, 79, 122, 0.06);
+}
+
+.extend-btn[hidden] {
+  display: none;
 }
 
 .unit-grid {

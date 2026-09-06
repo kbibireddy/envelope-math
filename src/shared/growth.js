@@ -1,6 +1,8 @@
 import { primarySize, sizeBreakdown } from "./storage.js";
 
 export const DEFAULT_PROJECTION_YEARS = 5;
+export const MAX_PROJECTION_YEARS = 50;
+export const PROJECTION_YEAR_STEP = 5;
 
 /** @param {unknown} value @param {number} [fallback] */
 export function clampNonNegative(value, fallback = 0) {

@@ -110,12 +110,16 @@ export function formatCompactNumber(value) {
 }
 
 /**
- * Detail / popover formatter: at most 2 digits after the decimal.
+ * Detail / popover formatter: ≤ 2 digits after the decimal, with grouping commas.
+ * e.g. 104000000 → "104,000,000"; 99.182 → "99.18"
  */
 export function formatDetailNumber(value) {
   if (!Number.isFinite(value) || value === 0) return "0";
   const rounded = Math.round(value * 100) / 100;
-  return toPlainDecimal(rounded, 2);
+  return rounded.toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+    useGrouping: true
+  });
 }
 
 /** @deprecated Prefer formatCompactNumber — kept as the main-view alias. */

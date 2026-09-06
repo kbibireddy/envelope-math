@@ -1,7 +1,7 @@
 import { clear } from "./dom.js";
 
 /**
- * Render a size unit grid. Skips DOM work when values are unchanged.
+ * Render a compact size unit grid. Skips DOM work when values are unchanged.
  */
 export function renderUnitGrid(container, units, { animate = true } = {}) {
   const fingerprint = units.map((u) => `${u.key}:${u.display}`).join("|");
@@ -38,6 +38,93 @@ export function renderUnitGrid(container, units, { animate = true } = {}) {
   window.setTimeout(() => {
     cells.forEach((cell) => cell.classList.remove("flash"));
   }, 280);
+}
+
+/**
+ * Fill an info popover body with the full B→PB ladder.
+ * @param {HTMLElement} body
+ * @param {Array<{ label: string, display: string }>} details
+ * @param {string} caption
+ */
+export function renderSizePopover(body, details, caption) {
+  clear(body);
+
+  if (caption) {
+    const note = document.createElement("p");
+    note.className = "size-popover-caption";
+    note.textContent = caption;
+    body.appendChild(note);
+  }
+
+  const list = document.createElement("dl");
+  list.className = "size-popover-list";
+
+  for (const row of details) {
+    const dt = document.createElement("dt");
+    dt.textContent = row.label;
+    const dd = document.createElement("dd");
+    dd.textContent = row.display;
+    list.append(dt, dd);
+  }
+
+  body.appendChild(list);
+}
+
+/**
+ * Wire an info button to show/hide its popover.
+ * Hover opens on fine pointers; click/tap toggles; Escape / outside click close.
+ * @param {HTMLButtonElement} button
+ * @param {HTMLElement} popover
+ */
+export function bindInfoPopover(button, popover) {
+  const canHover = () => window.matchMedia("(hover: hover)").matches;
+
+  const close = () => {
+    popover.hidden = true;
+    button.setAttribute("aria-expanded", "false");
+  };
+
+  const open = () => {
+    popover.hidden = false;
+    button.setAttribute("aria-expanded", "true");
+  };
+
+  const toggle = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (popover.hidden) open();
+    else close();
+  };
+
+  button.addEventListener("click", toggle);
+
+  const onEnter = () => {
+    if (canHover()) open();
+  };
+  const onLeave = (event) => {
+    if (!canHover()) return;
+    const next = /** @type {Node | null} */ (event.relatedTarget);
+    if (next && (button.contains(next) || popover.contains(next))) return;
+    close();
+  };
+
+  button.addEventListener("mouseenter", onEnter);
+  button.addEventListener("mouseleave", onLeave);
+  popover.addEventListener("mouseenter", onEnter);
+  popover.addEventListener("mouseleave", onLeave);
+
+  document.addEventListener("click", (event) => {
+    if (popover.hidden) return;
+    const target = /** @type {Node} */ (event.target);
+    if (popover.contains(target) || button.contains(target)) return;
+    close();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") close();
+  });
+
+  return { open, close };
 }
 
 /**

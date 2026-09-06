@@ -1,6 +1,7 @@
 import {
   formatCount,
   formatPrimary,
+  fullSizeBreakdown,
   primarySize,
   sizeBreakdown,
   utf8ByteLength
@@ -47,12 +48,15 @@ export function estimateSizing({
     recordCount: scaled.recordCount,
     growthPercent: scaled.growthPercent,
     year0Bytes: scaled.year0Bytes,
-    perRecordUnits: sizeBreakdown(bytesPerRecord),
     perRecordPrimary: primarySize(bytesPerRecord),
-    totalUnits: scaled.year0Units,
+    perRecordUnits: sizeBreakdown(bytesPerRecord),
+    perRecordDetails: fullSizeBreakdown(bytesPerRecord),
     totalPrimary: scaled.year0Primary,
+    totalUnits: scaled.year0Units,
+    totalDetails: fullSizeBreakdown(scaled.year0Bytes),
     projections: scaled.projections,
     summaryLine: `${formatCount(scaled.recordCount)} records × ${formatCount(bytesPerRecord)} bytes each`,
+    perRecordLabel: formatPrimary(bytesPerRecord),
     heroLabel: formatPrimary(scaled.year0Bytes)
   };
 }

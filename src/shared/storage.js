@@ -11,10 +11,14 @@ export const STORAGE_UNITS = Object.freeze([
 ]);
 
 /**
- * Hide a unit when its converted value is below this.
- * Drops TB/PB (and any higher rung) when digits only appear after three decimal zeros.
+ * Main-view visibility floor.
+ * Hide a unit when its value is < 0.01 (more than two zeros after the decimal
+ * before a significant digit — e.g. 0.009).
  */
-export const UNIT_VISIBILITY_THRESHOLD = 0.001;
+export const UNIT_VISIBILITY_THRESHOLD = 0.01;
+
+/** Compact with K / M / B once the numeric magnitude is greater than 9999. */
+export const COMPACT_NUMBER_THRESHOLD = 9999;
 
 const textEncoder = new TextEncoder();
 
@@ -24,29 +28,81 @@ export function utf8ByteLength(text) {
   return textEncoder.encode(text).length;
 }
 
-export function formatUnitValue(value) {
+/**
+ * Trim a finite number to at most `maxDigits` significant digits.
+ * @param {number} value
+ * @param {number} maxDigits
+ */
+export function toSignificantDigits(value, maxDigits) {
+  if (!Number.isFinite(value) || value === 0) return 0;
+  const digits = Math.max(1, Math.floor(maxDigits));
+  return Number(value.toPrecision(digits));
+}
+
+/**
+ * Main-view number formatter:
+ * - at most 4 significant digits
+ * - values > 9999 → K / M / B suffix
+ */
+export function formatCompactNumber(value) {
   if (!Number.isFinite(value) || value === 0) return "0";
-  if (value >= 1000) {
-    return value.toLocaleString("en-US", { maximumFractionDigits: 2 });
+
+  const sign = value < 0 ? "-" : "";
+  const abs = Math.abs(value);
+
+  if (abs > COMPACT_NUMBER_THRESHOLD) {
+    // abs > 9999 → K / M / B (includes 10000+)
+    const tiers = [
+      { div: 1e12, suffix: "T" },
+      { div: 1e9, suffix: "B" },
+      { div: 1e6, suffix: "M" },
+      { div: 1e3, suffix: "K" }
+    ];
+    for (const tier of tiers) {
+      if (abs >= tier.div) {
+        const scaled = toSignificantDigits(abs / tier.div, 4);
+        return `${sign}${stripTrailingZeros(scaled)}${tier.suffix}`;
+      }
+    }
   }
-  if (value >= 1) {
-    return value.toLocaleString("en-US", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 3
-    });
-  }
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 6
-  });
+
+  const compact = toSignificantDigits(abs, 4);
+  return `${sign}${stripTrailingZeros(compact)}`;
+}
+
+/**
+ * Detail / popover formatter: at most 2 digits after the decimal.
+ */
+export function formatDetailNumber(value) {
+  if (!Number.isFinite(value) || value === 0) return "0";
+  const rounded = Math.round(value * 100) / 100;
+  return stripTrailingZeros(rounded);
+}
+
+/** @deprecated Prefer formatCompactNumber — kept as the main-view alias. */
+export function formatUnitValue(value) {
+  return formatCompactNumber(value);
 }
 
 export function formatCount(value) {
   if (!Number.isFinite(value)) return "0";
-  return value.toLocaleString("en-US");
+  return formatCompactNumber(value);
+}
+
+function stripTrailingZeros(value) {
+  const asNumber = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(asNumber)) return "0";
+  // Avoid scientific notation for ordinary magnitudes.
+  if (Math.abs(asNumber) >= 1e12 || (Math.abs(asNumber) > 0 && Math.abs(asNumber) < 1e-6)) {
+    return asNumber.toPrecision(4).replace(/\.?0+e/, "e");
+  }
+  const fixed = asNumber.toString();
+  if (!fixed.includes(".")) return fixed;
+  return fixed.replace(/\.?0+$/, "");
 }
 
 /**
+ * Main-view unit rows: bytes always shown; other units only when value ≥ 0.01.
  * @param {number} bytes
  * @returns {Array<{ key: string, label: string, value: number, display: string }>}
  */
@@ -63,7 +119,7 @@ export function sizeBreakdown(bytes) {
       key: unit.key,
       label: unit.label,
       value,
-      display: formatUnitValue(value)
+      display: formatCompactNumber(value)
     });
   }
 
@@ -71,21 +127,31 @@ export function sizeBreakdown(bytes) {
 }
 
 /**
+ * Full B→PB ladder for info popovers (always all six units).
+ * Detail formatting: ≤ 2 digits after the decimal.
+ */
+export function fullSizeBreakdown(bytes) {
+  const safeBytes = Number.isFinite(bytes) && bytes > 0 ? bytes : 0;
+  return STORAGE_UNITS.map((unit) => {
+    const value = safeBytes / unit.divisor;
+    return {
+      key: unit.key,
+      label: unit.label,
+      value,
+      display: formatDetailNumber(value)
+    };
+  });
+}
+
+/**
  * Human-scale headline unit: prefer a magnitude in [1, 1000).
- * e.g. 104,000,000 bytes → ~99.2 MB (not 0.097 GB).
  */
 export function primarySize(bytes) {
   const safeBytes = Number.isFinite(bytes) && bytes > 0 ? bytes : 0;
   if (safeBytes === 0) {
-    return {
-      key: "B",
-      label: "bytes",
-      value: 0,
-      display: "0"
-    };
+    return { key: "B", label: "bytes", value: 0, display: "0" };
   }
 
-  // Walk largest → smallest; pick the first unit whose value is in [1, 1000).
   for (let i = STORAGE_UNITS.length - 1; i >= 0; i -= 1) {
     const unit = STORAGE_UNITS[i];
     const value = safeBytes / unit.divisor;
@@ -94,19 +160,18 @@ export function primarySize(bytes) {
         key: unit.key,
         label: unit.label,
         value,
-        display: formatUnitValue(value)
+        display: formatCompactNumber(value)
       };
     }
   }
 
-  // Larger than 1000 PB — still show PB.
   const largest = STORAGE_UNITS[STORAGE_UNITS.length - 1];
   const value = safeBytes / largest.divisor;
   return {
     key: largest.key,
     label: largest.label,
     value,
-    display: formatUnitValue(value)
+    display: formatCompactNumber(value)
   };
 }
 

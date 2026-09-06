@@ -1,6 +1,11 @@
 import { $, setAnimatedText, setText } from "../../ui/dom.js";
 import { bindCustomNumber, createPresetChips } from "../../ui/presets.js";
-import { renderProjectionTable, renderUnitGrid } from "../../ui/results.js";
+import {
+  bindInfoPopover,
+  renderProjectionTable,
+  renderSizePopover,
+  renderUnitGrid
+} from "../../ui/results.js";
 import {
   GROWTH_PRESETS,
   MULTIPLIER_PRESETS,
@@ -23,10 +28,14 @@ export function mountSizingCalculator(root) {
 
   const sampleText = /** @type {HTMLTextAreaElement} */ ($("sampleText", root));
   const charMeta = $("charMeta", root);
-  const heroValue = $("heroValue", root);
-  const heroSub = $("heroSub", root);
+  const perRecordPrimary = $("perRecordPrimary", root);
+  const perRecordSub = $("perRecordSub", root);
   const perRecordUnits = $("perRecordUnits", root);
+  const perRecordPopoverBody = $("perRecordPopoverBody", root);
+  const totalPrimary = $("totalPrimary", root);
+  const totalSub = $("totalSub", root);
   const totalUnits = $("totalUnits", root);
+  const totalPopoverBody = $("totalPopoverBody", root);
   const projectionHelper = $("projectionHelper", root);
   const projectionBody = /** @type {HTMLTableSectionElement} */ (
     $("projectionBody", root)
@@ -37,6 +46,15 @@ export function mountSizingCalculator(root) {
   );
   const customGrowthInput = /** @type {HTMLInputElement} */ (
     $("customGrowth", root)
+  );
+
+  bindInfoPopover(
+    /** @type {HTMLButtonElement} */ ($("perRecordInfoBtn", root)),
+    $("perRecordPopover", root)
+  );
+  bindInfoPopover(
+    /** @type {HTMLButtonElement} */ ($("totalInfoBtn", root)),
+    $("totalPopover", root)
   );
 
   const multiplierChips = createPresetChips({
@@ -101,15 +119,29 @@ export function mountSizingCalculator(root) {
       charMeta,
       `${estimate.textLength.toLocaleString("en-US")} characters · ${estimate.bytesPerRecord.toLocaleString("en-US")} UTF-8 bytes`
     );
-    setAnimatedText(heroValue, estimate.heroLabel);
-    setText(heroSub, estimate.summaryLine);
+
+    setAnimatedText(perRecordPrimary, estimate.perRecordLabel);
+    setText(perRecordSub, "UTF-8 payload size");
+    renderUnitGrid(perRecordUnits, estimate.perRecordUnits);
+    renderSizePopover(
+      perRecordPopoverBody,
+      estimate.perRecordDetails,
+      "All units · 2 decimal places max"
+    );
+
+    setAnimatedText(totalPrimary, estimate.heroLabel);
+    setText(totalSub, estimate.summaryLine);
+    renderUnitGrid(totalUnits, estimate.totalUnits);
+    renderSizePopover(
+      totalPopoverBody,
+      estimate.totalDetails,
+      "All units · 2 decimal places max"
+    );
+
     setText(
       projectionHelper,
       `${estimate.growthPercent}% YoY · ${estimate.projections.length - 1} years`
     );
-
-    renderUnitGrid(perRecordUnits, estimate.perRecordUnits);
-    renderUnitGrid(totalUnits, estimate.totalUnits);
     renderProjectionTable(projectionBody, estimate.projections);
   }
 

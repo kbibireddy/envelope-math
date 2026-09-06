@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   UNIT_VISIBILITY_THRESHOLD,
+  formatCompactNumber,
   formatCount,
+  formatDetailNumber,
   formatPrimary,
   formatUnitValue,
+  fullSizeBreakdown,
   primarySize,
   sizeBreakdown,
   utf8ByteLength
@@ -34,13 +37,13 @@ describe("sizeBreakdown visibility", () => {
     expect(sizeBreakdown(0).map((row) => row.key)).toEqual(["B"]);
   });
 
-  it("shows KB/MB above the 0.001 threshold", () => {
+  it("shows KB/MB above the 0.01 threshold", () => {
     expect(sizeBreakdown(1024).map((row) => row.key)).toEqual(["B", "KB"]);
     expect(sizeBreakdown(1024 ** 2).map((row) => row.key)).toContain("MB");
     expect(sizeBreakdown(1024 ** 2).map((row) => row.key)).not.toContain("TB");
   });
 
-  it("drops TB/PB when values sit after three decimal zeros", () => {
+  it("hides units below 0.01 (more than two leading decimal zeros)", () => {
     const rows = sizeBreakdown(1024 ** 3);
     expect(rows.map((row) => row.key)).toEqual(["B", "KB", "MB", "GB"]);
     expect(
@@ -50,8 +53,8 @@ describe("sizeBreakdown visibility", () => {
     ).toBe(true);
   });
 
-  it("includes TB once it clears the threshold", () => {
-    const rows = sizeBreakdown(2 * 1024 ** 3);
+  it("includes TB once it clears the 0.01 threshold (~10.24 GB)", () => {
+    const rows = sizeBreakdown(11 * 1024 ** 3);
     expect(rows.map((row) => row.key)).toContain("TB");
     expect(rows.map((row) => row.key)).not.toContain("PB");
   });
@@ -61,12 +64,42 @@ describe("sizeBreakdown visibility", () => {
   });
 });
 
+describe("fullSizeBreakdown", () => {
+  it("always returns the full B→PB ladder with 2-decimal detail values", () => {
+    const rows = fullSizeBreakdown(104);
+    expect(rows.map((row) => row.key)).toEqual([
+      "B",
+      "KB",
+      "MB",
+      "GB",
+      "TB",
+      "PB"
+    ]);
+    expect(rows[0].display).toBe("104");
+    expect(rows[1].display).toBe("0.1");
+  });
+});
+
 describe("formatting helpers", () => {
+  it("compacts main-view numbers above 9999 with K/M/B", () => {
+    expect(formatCompactNumber(0)).toBe("0");
+    expect(formatCompactNumber(9999)).toBe("9999");
+    expect(formatCompactNumber(10000)).toBe("10K");
+    expect(formatCompactNumber(1_500_000)).toBe("1.5M");
+    expect(formatCompactNumber(2_000_000_000)).toBe("2B");
+  });
+
+  it("limits detail numbers to 2 decimal places", () => {
+    expect(formatDetailNumber(0.1015625)).toBe("0.1");
+    expect(formatDetailNumber(99.182)).toBe("99.18");
+    expect(formatDetailNumber(104)).toBe("104");
+  });
+
   it("formats unit values and counts", () => {
     expect(formatUnitValue(0)).toBe("0");
-    expect(formatUnitValue(1500)).toMatch(/1,?500/);
-    expect(formatUnitValue(0.5)).toMatch(/0\.5/);
-    expect(formatCount(1_000_000)).toMatch(/1,?000,?000/);
+    expect(formatUnitValue(1500)).toBe("1500");
+    expect(formatUnitValue(0.5)).toBe("0.5");
+    expect(formatCount(1_000_000)).toBe("1M");
     expect(formatCount(Number.NaN)).toBe("0");
     expect(formatPrimary(1024)).toBe("1 KB");
   });

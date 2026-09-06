@@ -36,31 +36,33 @@
         <p class="eyebrow">Inputs</p>
         <h2 id="inputs-title">Sizing estimation</h2>
 
-        <div class="section">
-          <label class="field-label" for="sampleText">Sample record / payload</label>
-          <textarea id="sampleText" spellcheck="false" placeholder='{"userId":"u_1842","event":"checkout"}'></textarea>
-          <p class="helper" id="charMeta">0 characters · 0 UTF-8 bytes</p>
-        </div>
+        <div class="inputs-row">
+          <div class="section sample-block">
+            <label class="field-label" for="sampleText">Sample record / payload</label>
+            <textarea id="sampleText" spellcheck="false" placeholder='{"userId":"u_1842","event":"checkout"}'></textarea>
+            <p class="helper" id="charMeta">0 characters · 0 UTF-8 bytes</p>
+          </div>
 
-        <div class="section compact scale-block">
-          <div class="scale-grid">
-            <div class="scale-col">
-              <span class="field-label" id="multiplierLabel">Records</span>
-              <div class="chips" id="multiplierChips" role="group" aria-labelledby="multiplierLabel"></div>
-              <div class="custom-row">
-                <label class="sr-only" for="customMultiplier">Custom record count</label>
-                <input id="customMultiplier" type="number" min="0" step="1" inputmode="numeric" placeholder="Custom count">
-                <button type="button" class="apply" id="applyMultiplier">Apply</button>
+          <div class="section compact scale-block">
+            <div class="scale-grid">
+              <div class="scale-col">
+                <span class="field-label" id="multiplierLabel">Records</span>
+                <div class="chips" id="multiplierChips" role="group" aria-labelledby="multiplierLabel"></div>
+                <div class="custom-row">
+                  <label class="sr-only" for="customMultiplier">Custom record count</label>
+                  <input id="customMultiplier" type="number" min="0" step="1" inputmode="numeric" placeholder="Custom count">
+                  <button type="button" class="apply" id="applyMultiplier">Apply</button>
+                </div>
               </div>
-            </div>
 
-            <div class="scale-col">
-              <span class="field-label" id="growthLabel">YoY growth</span>
-              <div class="chips" id="growthChips" role="group" aria-labelledby="growthLabel"></div>
-              <div class="custom-row">
-                <label class="sr-only" for="customGrowth">Custom growth percent</label>
-                <input id="customGrowth" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Custom %">
-                <button type="button" class="apply" id="applyGrowth">Apply</button>
+              <div class="scale-col">
+                <span class="field-label" id="growthLabel">YoY growth</span>
+                <div class="chips" id="growthChips" role="group" aria-labelledby="growthLabel"></div>
+                <div class="custom-row">
+                  <label class="sr-only" for="customGrowth">Custom growth percent</label>
+                  <input id="customGrowth" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Custom %">
+                  <button type="button" class="apply" id="applyGrowth">Apply</button>
+                </div>
               </div>
             </div>
           </div>
@@ -68,27 +70,55 @@
       </section>
 
       <section class="panel results" aria-labelledby="results-title" aria-live="polite">
-        <p class="eyebrow">Live estimate</p>
+        <p class="eyebrow">Estimate</p>
         <h2 id="results-title">Storage footprint</h2>
 
-        <div class="hero-metric">
-          <span class="label">Year 0 total</span>
-          <span class="value" id="heroValue">0 bytes</span>
-          <span class="sub" id="heroSub">0 records × 0 bytes each</span>
-        </div>
-
-        <div class="section compact">
-          <h3>Per-record size</h3>
+        <div class="section compact size-block">
+          <div class="section-head">
+            <h3>Single record</h3>
+            <button
+              type="button"
+              class="info-btn"
+              id="perRecordInfoBtn"
+              aria-expanded="false"
+              aria-controls="perRecordPopover"
+              title="Full unit breakdown"
+            >i</button>
+          </div>
+          <div class="size-primary">
+            <span class="value" id="perRecordPrimary">0 bytes</span>
+            <span class="sub" id="perRecordSub">UTF-8 payload size</span>
+          </div>
           <div class="unit-grid" id="perRecordUnits"></div>
+          <div class="size-popover" id="perRecordPopover" hidden role="dialog" aria-label="Single record full size">
+            <div class="size-popover-body" id="perRecordPopoverBody"></div>
+          </div>
         </div>
 
-        <div class="section">
-          <h3>Scaled total (year 0)</h3>
+        <div class="section compact size-block">
+          <div class="section-head">
+            <h3>With multiplier</h3>
+            <button
+              type="button"
+              class="info-btn"
+              id="totalInfoBtn"
+              aria-expanded="false"
+              aria-controls="totalPopover"
+              title="Full unit breakdown"
+            >i</button>
+          </div>
+          <div class="size-primary">
+            <span class="value" id="totalPrimary">0 bytes</span>
+            <span class="sub" id="totalSub">0 records × 0 bytes each</span>
+          </div>
           <div class="unit-grid" id="totalUnits"></div>
+          <div class="size-popover" id="totalPopover" hidden role="dialog" aria-label="Scaled total full size">
+            <div class="size-popover-body" id="totalPopoverBody"></div>
+          </div>
         </div>
 
-        <div class="section compact">
-          <h3>5-year projection</h3>
+        <details class="section compact projection-block">
+          <summary>Yearly footprint</summary>
           <p class="helper" id="projectionHelper"></p>
           <table class="projection">
             <thead>
@@ -100,11 +130,12 @@
             </thead>
             <tbody id="projectionBody"></tbody>
           </table>
-        </div>
+        </details>
 
         <p class="footnote">
-          Binary units (1 KB = 1024 bytes). Growth compounds on year-0 footprint.
-          Runs in your browser — nothing is uploaded.
+          Binary units (1 KB = 1024 bytes). Main view hides units below 0.01 and
+          shortens values above 9999 with K/M/B. Info popovers show the full ladder.
+          Growth compounds on year-0 footprint. Runs in your browser — nothing is uploaded.
         </p>
       </section>
     </div>

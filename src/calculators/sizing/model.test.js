@@ -19,7 +19,10 @@ describe("estimateSizing", () => {
     expect(result.projections).toHaveLength(6);
     expect(result.projections[5].bytes).toBeCloseTo(4_000_000 * 1.4 ** 5);
     expect(result.heroLabel).toMatch(/MB|KB|bytes|GB/);
-    expect(result.summaryLine).toContain("1,000,000");
+    expect(result.summaryLine).toContain("1M");
+    expect(result.perRecordLabel).toMatch(/bytes|KB/);
+    expect(result.perRecordDetails).toHaveLength(6);
+    expect(result.totalDetails).toHaveLength(6);
   });
 
   it("accepts missing text and uses the default horizon", () => {

@@ -675,15 +675,32 @@ export function mountThroughputCalculator(root) {
     streamTableBody.appendChild(fragment);
   }
 
+  /**
+   * DAU/MAU only for app servers; DB/cache/queue use plain rate chips.
+   * Use attribute + inline display so author `display: grid` rules cannot win.
+   * @param {HTMLElement} el
+   * @param {boolean} isHidden
+   */
+  function setHidden(el, isHidden) {
+    el.toggleAttribute("hidden", isHidden);
+    el.inert = isHidden;
+    el.style.display = isHidden ? "none" : "";
+  }
+
+  function syncTrafficInputVisibility(traffic, hasFocus) {
+    const mode = hasFocus ? traffic?.mode : null;
+    setHidden(audienceBlock, mode !== "audience");
+    setHidden(rateBlock, mode !== "rate");
+  }
+
   function render() {
     const traffic = trafficConfigForFocus(state.investigationId);
     const focus = getInvestigationFocus(state.investigationId);
     const hasFocus = Boolean(focus && traffic);
 
-    trafficBlock.hidden = !hasFocus;
-    capacityBlock.hidden = !hasFocus;
-    audienceBlock.hidden = !(hasFocus && traffic?.mode === "audience");
-    rateBlock.hidden = !(hasFocus && traffic?.mode === "rate");
+    setHidden(trafficBlock, !hasFocus);
+    setHidden(capacityBlock, !hasFocus);
+    syncTrafficInputVisibility(traffic, hasFocus);
 
     setText(investigationMeta, focus?.hint ?? "Pick a focus to continue");
 
@@ -719,7 +736,9 @@ export function mountThroughputCalculator(root) {
     });
     latestEstimate = hasFocus ? estimate : null;
 
-    setText(audienceMeta, audienceConversionLabel(estimate));
+    if (traffic?.mode === "audience") {
+      setText(audienceMeta, audienceConversionLabel(estimate));
+    }
     setText(
       rateMeta,
       traffic?.mode === "rate"

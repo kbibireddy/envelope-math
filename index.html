@@ -183,18 +183,33 @@
         </div>
 
         <div class="section compact">
-          <h3>Optional capacity</h3>
+          <h3>Capacity check</h3>
+          <p class="helper">
+            Modern-system envelopes for TPS / connections. Pick a system to
+            auto-fill a conservative unit capacity, then override if you have
+            benchmarks.
+          </p>
+          <div class="chips" id="capacityCategoryChips" role="group" aria-label="System category"></div>
+          <div class="chips capacity-profile-chips" id="capacityProfileChips" role="group" aria-label="System profile"></div>
+
           <div class="capacity-grid">
             <label class="field-stack">
               <span class="field-label" for="payloadBytes">Payload bytes / request</span>
               <input id="payloadBytes" type="number" min="0" step="1" placeholder="e.g. 2048">
             </label>
             <label class="field-stack">
-              <span class="field-label" for="nodeCapacityTps">TPS per node</span>
-              <input id="nodeCapacityTps" type="number" min="0" step="1" placeholder="e.g. 5000">
+              <span class="field-label" for="nodeCapacityTps" id="nodeCapacityLabel">TPS per unit</span>
+              <input id="nodeCapacityTps" type="number" min="0" step="1" placeholder="pick a system or enter">
             </label>
           </div>
-          <p class="helper" id="capacityMeta">Set TPS/node to size the fleet</p>
+          <p class="helper" id="capacityMeta">Pick a system to size the fleet</p>
+          <div class="capacity-guide" id="capacityGuide" hidden>
+            <p class="capacity-guide-title" id="capacityGuideTitle"></p>
+            <p class="capacity-guide-limits" id="capacityGuideLimits"></p>
+            <p class="capacity-guide-connections" id="capacityGuideConnections"></p>
+            <p class="capacity-guide-tip" id="capacityGuideTip"></p>
+            <p class="capacity-guide-assess" id="capacityGuideAssess"></p>
+          </div>
         </div>
       </section>
 
@@ -248,7 +263,7 @@
               <p class="compare-value small"><span id="bandwidthPeak">—</span></p>
             </div>
             <div>
-              <p class="compare-label">Nodes @ peak</p>
+              <p class="compare-label" id="nodesNeededLabel">Nodes @ peak</p>
               <p class="compare-value small"><span id="nodesNeeded">—</span></p>
             </div>
           </div>

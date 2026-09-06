@@ -936,6 +936,52 @@ input:focus {
   font-size: 1.05rem;
 }
 
+.capacity-profile-chips {
+  margin-top: 8px;
+}
+
+.capacity-guide {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(14, 79, 122, 0.04);
+}
+
+.capacity-guide p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.capacity-guide p:last-child {
+  margin-bottom: 0;
+}
+
+.capacity-guide-title {
+  color: var(--ink) !important;
+  font-weight: 700;
+  font-family: var(--mono);
+  font-size: 0.86rem !important;
+}
+
+.capacity-guide-assess[data-level="ok"] {
+  color: var(--signal) !important;
+  font-weight: 700;
+}
+
+.capacity-guide-assess[data-level="optimistic"] {
+  color: #9a6700 !important;
+  font-weight: 700;
+}
+
+.capacity-guide-assess[data-level="high"],
+.capacity-guide-assess[data-level="low"] {
+  color: var(--danger) !important;
+  font-weight: 700;
+}
+
 @keyframes rise {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }

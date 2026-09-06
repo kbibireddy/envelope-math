@@ -15,6 +15,12 @@ import {
   formatTps,
   nextStreamId
 } from "./model.js";
+import {
+  CAPACITY_CATEGORIES,
+  assessCapacityInput,
+  getCapacityProfile,
+  profilesForCategory
+} from "./capacityProfiles.js";
 
 /**
  * Mount the throughput calculator into a root that already contains markup.
@@ -28,6 +34,10 @@ export function mountThroughputCalculator(root) {
     peakMultiplier: THROUGHPUT_DEFAULTS.peakMultiplier,
     payloadBytes: THROUGHPUT_DEFAULTS.payloadBytes,
     nodeCapacityTps: THROUGHPUT_DEFAULTS.nodeCapacityTps,
+    capacityCategory: /** @type {'database' | 'cache' | 'queue' | 'compute'} */ (
+      "database"
+    ),
+    capacityProfileId: /** @type {string | null} */ (null),
     customAudience: false,
     customPeak: false,
     customActiveDays: false,
@@ -48,7 +58,17 @@ export function mountThroughputCalculator(root) {
   const bandwidthAvg = $("bandwidthAvg", root);
   const bandwidthPeak = $("bandwidthPeak", root);
   const nodesNeeded = $("nodesNeeded", root);
+  const nodesNeededLabel = $("nodesNeededLabel", root);
   const capacityMeta = $("capacityMeta", root);
+  const capacityCategoryChips = $("capacityCategoryChips", root);
+  const capacityProfileChips = $("capacityProfileChips", root);
+  const capacityGuide = $("capacityGuide", root);
+  const capacityGuideTitle = $("capacityGuideTitle", root);
+  const capacityGuideLimits = $("capacityGuideLimits", root);
+  const capacityGuideConnections = $("capacityGuideConnections", root);
+  const capacityGuideTip = $("capacityGuideTip", root);
+  const capacityGuideAssess = $("capacityGuideAssess", root);
+  const nodeCapacityLabel = $("nodeCapacityLabel", root);
   const payloadInput = /** @type {HTMLInputElement} */ ($("payloadBytes", root));
   const nodeCapacityInput = /** @type {HTMLInputElement} */ (
     $("nodeCapacityTps", root)
@@ -218,6 +238,71 @@ export function mountThroughputCalculator(root) {
     render();
   });
 
+  function renderCategoryChips() {
+    clear(capacityCategoryChips);
+    for (const category of CAPACITY_CATEGORIES) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "chip";
+      btn.textContent = category.label;
+      btn.classList.toggle("active", state.capacityCategory === category.id);
+      btn.addEventListener("click", () => {
+        state.capacityCategory = category.id;
+        renderCategoryChips();
+        renderProfileChips();
+      });
+      capacityCategoryChips.appendChild(btn);
+    }
+  }
+
+  function renderProfileChips() {
+    clear(capacityProfileChips);
+    for (const profile of profilesForCategory(state.capacityCategory)) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "chip";
+      btn.textContent = profile.label;
+      btn.title = `${formatTps(profile.conservativeTps)}–${formatTps(profile.optimisticTps)} TPS/${profile.unitLabel}`;
+      btn.classList.toggle("active", state.capacityProfileId === profile.id);
+      btn.addEventListener("click", () => {
+        state.capacityProfileId = profile.id;
+        state.nodeCapacityTps = profile.conservativeTps;
+        nodeCapacityInput.value = String(profile.conservativeTps);
+        renderProfileChips();
+        render();
+      });
+      capacityProfileChips.appendChild(btn);
+    }
+  }
+
+  function renderCapacityGuide() {
+    const profile = getCapacityProfile(state.capacityProfileId);
+    if (!profile) {
+      capacityGuide.hidden = true;
+      setText(nodeCapacityLabel, "TPS per unit");
+      return;
+    }
+
+    capacityGuide.hidden = false;
+    setText(
+      capacityGuideTitle,
+      `${profile.label} · ~${formatTps(profile.conservativeTps)}–${formatTps(profile.optimisticTps)} TPS/${profile.unitLabel}`
+    );
+    setText(capacityGuideLimits, profile.limits);
+    setText(
+      capacityGuideConnections,
+      profile.connections
+        ? `Connections: ${profile.connections}`
+        : "Connections: n/a for this service model"
+    );
+    setText(capacityGuideTip, `Tip: ${profile.tip}`);
+
+    const assessment = assessCapacityInput(profile, state.nodeCapacityTps);
+    setText(capacityGuideAssess, assessment.message);
+    capacityGuideAssess.dataset.level = assessment.level;
+    setText(nodeCapacityLabel, `TPS per ${profile.unitLabel}`);
+  }
+
   function syncModeButtons() {
     for (const [mode, btn] of modeButtons) {
       const active = state.audienceMode === mode;
@@ -360,16 +445,32 @@ export function mountThroughputCalculator(root) {
       nodesNeeded,
       estimate.nodesNeeded == null ? "—" : formatGrouped(estimate.nodesNeeded)
     );
+
+    const profile = getCapacityProfile(state.capacityProfileId);
+    const unit = profile?.unitLabel ?? "node";
+    setText(
+      nodesNeededLabel,
+      profile && profile.unitLabel !== "node"
+        ? `${capitalize(profile.unitLabel)}s @ peak`
+        : "Nodes @ peak"
+    );
     setText(
       capacityMeta,
       estimate.nodeCapacityTps > 0
-        ? `At ${formatTps(estimate.nodeCapacityTps)} TPS/node for peak load`
-        : "Set TPS/node to size the fleet"
+        ? `At ${formatTps(estimate.nodeCapacityTps)} TPS/${unit} for peak load`
+        : "Pick a system or enter TPS/unit to size the fleet"
     );
+    renderCapacityGuide();
     renderStreamTable(estimate);
   }
 
+  function capitalize(value) {
+    return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
+  }
+
   syncModeButtons();
+  renderCategoryChips();
+  renderProfileChips();
   renderStreamEditor();
   render();
 

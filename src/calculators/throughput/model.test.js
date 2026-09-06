@@ -6,7 +6,10 @@ import {
   estimateThroughput,
   formatBandwidth,
   formatTps,
-  trafficConfigForFocus
+  trafficConfigForFocus,
+  createLayerSnapshot,
+  upsertLayerSnapshot,
+  removeLayerSnapshot
 } from "./model.js";
 
 describe("dailyActiveUsers", () => {
@@ -97,6 +100,52 @@ describe("estimateThroughput", () => {
     expect(result.avgBandwidthBps).toBeCloseTo(result.totalAvgTps * 1024);
     expect(result.nodesNeeded).toBe(Math.ceil(result.totalPeakTps / 1000));
     expect(result.avgBandwidthLabel).not.toBe("—");
+  });
+});
+
+
+
+describe("layer snapshots", () => {
+  it("creates, upserts, and removes saved layer summaries", () => {
+    const estimate = estimateThroughput({
+      trafficMode: "rate",
+      peakMultiplier: 3,
+      nodeCapacityTps: 1000,
+      streams: [{ id: "total", name: "Total", avgTps: 5000 }]
+    });
+
+    const snap = createLayerSnapshot({
+      investigationId: "database",
+      layerLabel: "Databases",
+      systemLabel: "Aurora",
+      unitLabel: "instance",
+      estimate,
+      trafficBrief: "5K RPS · peak 3×"
+    });
+
+    expect(snap.headline).toMatch(/5K avg/i);
+    expect(snap.nodesLabel).toMatch(/instance/i);
+
+    let saved = upsertLayerSnapshot([], snap);
+    expect(saved).toHaveLength(1);
+
+    const updated = createLayerSnapshot({
+      investigationId: "database",
+      layerLabel: "Databases",
+      systemLabel: "DynamoDB",
+      estimate: estimateThroughput({
+        trafficMode: "rate",
+        peakMultiplier: 3,
+        streams: [{ id: "total", name: "Total", avgTps: 10_000 }]
+      }),
+      trafficBrief: "10K RPS"
+    });
+    saved = upsertLayerSnapshot(saved, updated);
+    expect(saved).toHaveLength(1);
+    expect(saved[0].systemLabel).toBe("DynamoDB");
+
+    saved = removeLayerSnapshot(saved, "database");
+    expect(saved).toHaveLength(0);
   });
 });
 

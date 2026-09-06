@@ -146,6 +146,17 @@
 
   <template id="tpl-throughput">
     <div class="layout">
+      <section class="panel saved-layers-panel" id="savedLayersBlock" hidden aria-labelledby="savedLayersTitle">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Pinned</p>
+            <h2 id="savedLayersTitle">Saved layers</h2>
+          </div>
+          <p class="helper" id="savedLayersHelper">Use these while sizing the next tier</p>
+        </div>
+        <div class="saved-layers" id="savedLayersList" role="list"></div>
+      </section>
+
       <section class="panel controls" aria-labelledby="throughput-inputs-title">
         <p class="eyebrow">Inputs</p>
         <h2 id="throughput-inputs-title">Throughput estimation</h2>
@@ -255,8 +266,15 @@
       </section>
 
       <section class="panel results" aria-labelledby="throughput-results-title" aria-live="polite">
-        <p class="eyebrow">Estimate</p>
-        <h2 id="throughput-results-title">Request throughput</h2>
+        <div class="section-head results-head">
+          <div>
+            <p class="eyebrow">Estimate</p>
+            <h2 id="throughput-results-title">Request throughput</h2>
+          </div>
+          <button type="button" class="save-layer-btn" id="saveLayerBtn" hidden>
+            Save this layer
+          </button>
+        </div>
 
         <div class="footprint-panel section compact">
           <div class="footprint-head">

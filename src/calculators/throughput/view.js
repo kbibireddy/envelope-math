@@ -10,10 +10,13 @@ import {
   PEAK_PRESETS,
   RATE_PRESETS,
   THROUGHPUT_DEFAULTS,
+  createLayerSnapshot,
   estimateThroughput,
   formatTps,
   nextStreamId,
-  trafficConfigForFocus
+  removeLayerSnapshot,
+  trafficConfigForFocus,
+  upsertLayerSnapshot
 } from "./model.js";
 import {
   INVESTIGATION_FOCUSES,
@@ -41,11 +44,16 @@ export function mountThroughputCalculator(root) {
     customPeak: false,
     customRate: false,
     rateAvgTps: 5_000,
+    /** @type {Array<ReturnType<typeof createLayerSnapshot>>} */
+    savedLayers: [],
     streams: THROUGHPUT_DEFAULTS.streams.map((stream) => ({ ...stream }))
   };
 
   const investigationChips = $("investigationChips", root);
   const investigationMeta = $("investigationMeta", root);
+  const savedLayersBlock = $("savedLayersBlock", root);
+  const savedLayersList = $("savedLayersList", root);
+  const saveLayerBtn = /** @type {HTMLButtonElement} */ ($("saveLayerBtn", root));
   const trafficBlock = $("trafficBlock", root);
   const audienceBlock = $("audienceBlock", root);
   const rateBlock = $("rateBlock", root);
@@ -86,6 +94,13 @@ export function mountThroughputCalculator(root) {
     $("nodeCapacityTps", root)
   );
   const addStreamBtn = /** @type {HTMLButtonElement} */ ($("addStreamBtn", root));
+
+  /** @type {ReturnType<typeof estimateThroughput> | null} */
+  let latestEstimate = null;
+
+  saveLayerBtn.addEventListener("click", () => {
+    saveCurrentLayer();
+  });
 
   /** @type {Map<string, HTMLButtonElement>} */
   const modeButtons = new Map();
@@ -426,6 +441,106 @@ export function mountThroughputCalculator(root) {
     }
   }
 
+
+  /**
+   * @param {ReturnType<typeof trafficConfigForFocus>} traffic
+   * @param {ReturnType<typeof estimateThroughput>} estimate
+   */
+  function trafficBriefFor(traffic, estimate) {
+    if (!traffic) return estimate.summaryLine;
+    if (traffic.mode === "rate") {
+      return `${estimate.totalAvgTpsLabel} ${traffic.rateSuffix} · peak ${estimate.peakMultiplier}×`;
+    }
+    return `${estimate.audienceLabel} · peak ${estimate.peakMultiplier}×`;
+  }
+
+  function saveCurrentLayer() {
+    const traffic = trafficConfigForFocus(state.investigationId);
+    const focus = getInvestigationFocus(state.investigationId);
+    if (!traffic || !focus || !latestEstimate) return;
+    if (latestEstimate.totalAvgTps <= 0) return;
+
+    const profile = getCapacityProfile(state.capacityProfileId);
+    const snapshot = createLayerSnapshot({
+      investigationId: focus.id,
+      layerLabel: focus.label,
+      systemLabel: profile?.label ?? null,
+      unitLabel: profile?.unitLabel ?? null,
+      estimate: latestEstimate,
+      trafficBrief: trafficBriefFor(traffic, latestEstimate)
+    });
+
+    state.savedLayers = upsertLayerSnapshot(state.savedLayers, snapshot);
+    renderSavedLayers();
+    syncSaveButton();
+  }
+
+  function renderSavedLayers() {
+    clear(savedLayersList);
+    const hasSaved = state.savedLayers.length > 0;
+    savedLayersBlock.hidden = !hasSaved;
+    if (!hasSaved) return;
+
+    const fragment = document.createDocumentFragment();
+    for (const snap of state.savedLayers) {
+      const row = document.createElement("article");
+      row.className = "saved-layer";
+      row.setAttribute("role", "listitem");
+
+      const body = document.createElement("div");
+      body.className = "saved-layer-body";
+
+      const title = document.createElement("p");
+      title.className = "saved-layer-title";
+      title.textContent = snap.systemLabel
+        ? `${snap.layerLabel} · ${snap.systemLabel}`
+        : snap.layerLabel;
+
+      const headline = document.createElement("p");
+      headline.className = "saved-layer-headline";
+      headline.textContent = snap.headline;
+
+      const brief = document.createElement("p");
+      brief.className = "saved-layer-brief";
+      brief.textContent = snap.trafficBrief;
+
+      body.append(title, headline, brief);
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "saved-layer-remove";
+      removeBtn.setAttribute("aria-label", `Remove saved ${snap.layerLabel}`);
+      removeBtn.textContent = "×";
+      removeBtn.addEventListener("click", () => {
+        state.savedLayers = removeLayerSnapshot(
+          state.savedLayers,
+          snap.investigationId
+        );
+        renderSavedLayers();
+        syncSaveButton();
+      });
+
+      row.append(body, removeBtn);
+      fragment.appendChild(row);
+    }
+
+    savedLayersList.appendChild(fragment);
+  }
+
+  function syncSaveButton() {
+    const focus = getInvestigationFocus(state.investigationId);
+    const canSave = Boolean(
+      focus && latestEstimate && latestEstimate.totalAvgTps > 0
+    );
+    saveLayerBtn.hidden = !canSave;
+    if (!canSave) return;
+
+    const already = state.savedLayers.some(
+      (item) => item.investigationId === focus?.id
+    );
+    saveLayerBtn.textContent = already ? "Update saved layer" : "Save this layer";
+  }
+
   /**
    * @param {ReturnType<typeof estimateThroughput>} estimate
    */
@@ -602,6 +717,7 @@ export function mountThroughputCalculator(root) {
       nodeCapacityTps: state.nodeCapacityTps,
       streams: hasFocus ? state.streams : []
     });
+    latestEstimate = hasFocus ? estimate : null;
 
     setText(audienceMeta, audienceConversionLabel(estimate));
     setText(
@@ -644,6 +760,7 @@ export function mountThroughputCalculator(root) {
     );
     renderCapacityGuide();
     renderStreamTable(estimate, traffic);
+    syncSaveButton();
   }
 
   function capitalize(value) {
@@ -656,12 +773,14 @@ export function mountThroughputCalculator(root) {
   renderProfileChips();
   renderStreamTemplates();
   renderStreamEditor();
+  renderSavedLayers();
   render();
 
   return {
     getState: () => ({
       ...state,
-      streams: state.streams.map((stream) => ({ ...stream }))
+      streams: state.streams.map((stream) => ({ ...stream })),
+      savedLayers: state.savedLayers.map((snap) => ({ ...snap }))
     }),
     destroy() {}
   };

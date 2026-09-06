@@ -376,6 +376,81 @@ export function estimateThroughput({
   };
 }
 
+
+/**
+ * Build a pinned summary for one investigation layer.
+ * Re-saving the same investigationId replaces the previous pin.
+ *
+ * @param {{
+ *   investigationId: string,
+ *   layerLabel: string,
+ *   systemLabel?: string | null,
+ *   unitLabel?: string | null,
+ *   estimate: ReturnType<typeof estimateThroughput>,
+ *   trafficBrief?: string
+ * }} input
+ */
+export function createLayerSnapshot({
+  investigationId,
+  layerLabel,
+  systemLabel = null,
+  unitLabel = null,
+  estimate,
+  trafficBrief = ""
+}) {
+  const nodesNeeded = estimate.nodesNeeded;
+  const unit = unitLabel || "node";
+  const nodesLabel =
+    nodesNeeded == null
+      ? null
+      : `${nodesNeeded.toLocaleString("en-US")} ${unit}${nodesNeeded === 1 ? "" : "s"} @ peak`;
+
+  const parts = [
+    `${estimate.totalAvgTpsLabel} avg`,
+    `${estimate.totalPeakTpsLabel} peak TPS`
+  ];
+  if (nodesLabel) parts.push(nodesLabel);
+
+  return {
+    id: investigationId,
+    investigationId,
+    layerLabel,
+    systemLabel: systemLabel || null,
+    trafficBrief: trafficBrief || estimate.summaryLine,
+    avgTpsLabel: estimate.totalAvgTpsLabel,
+    peakTpsLabel: estimate.totalPeakTpsLabel,
+    nodesLabel,
+    headline: parts.join(" · "),
+    summaryLine: estimate.summaryLine
+  };
+}
+
+/**
+ * Upsert a snapshot into the saved list (one pin per investigation layer).
+ * @param {Array<ReturnType<typeof createLayerSnapshot>>} saved
+ * @param {ReturnType<typeof createLayerSnapshot>} snapshot
+ */
+export function upsertLayerSnapshot(saved, snapshot) {
+  const list = Array.isArray(saved) ? [...saved] : [];
+  const index = list.findIndex(
+    (item) => item.investigationId === snapshot.investigationId
+  );
+  if (index >= 0) list[index] = snapshot;
+  else list.push(snapshot);
+  return list;
+}
+
+/**
+ * Remove a saved layer pin by investigation id.
+ * @param {Array<ReturnType<typeof createLayerSnapshot>>} saved
+ * @param {string} investigationId
+ */
+export function removeLayerSnapshot(saved, investigationId) {
+  return (Array.isArray(saved) ? saved : []).filter(
+    (item) => item.investigationId !== investigationId
+  );
+}
+
 /**
  * @param {number} count
  */
